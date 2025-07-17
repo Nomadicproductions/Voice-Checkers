@@ -38,6 +38,59 @@
             margin: 8px 0;
         }
 
+        .voice-controls {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px solid #4CAF50;
+            max-width: 600px;
+        }
+
+        .voice-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .voice-btn:hover {
+            background-color: #45a049;
+        }
+
+        .voice-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .voice-btn.listening {
+            background-color: #ff4444;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .voice-status {
+            margin: 10px 0;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .last-command {
+            margin: 5px 0;
+            font-style: italic;
+            color: #666;
+        }
+
         .turn-info {
             background-color: #e8f4fd;
             padding: 15px;
@@ -156,6 +209,15 @@
             font-weight: bold;
             text-align: center;
         }
+
+        .error-message {
+            color: #ff4444;
+            background-color: #ffe6e6;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -168,11 +230,20 @@
             <li>Board squares are labeled <strong>a1 to h8</strong> (row a is top, number 1 is leftmost column). Labels are rotated for both players and are now aligned with the correct squares.</li>
             <li>Player 1 pieces (light/red) are labeled <strong>L1–L12</strong> (bottom rows).</li>
             <li>Player 2 pieces (night/black) are labeled <strong>N1–N12</strong> (top rows), labels are rotated 180° for the opposite player.</li>
-            <li>Say moves like: <strong>move L4 to d3</strong>.</li>
+            <li>Say moves like: <strong>"move L4 to d3"</strong> or <strong>"L4 to d3"</strong>.</li>
             <li>For stacked (kinged) pieces: Player 1 = gold cap, Player 2 = cyan cap.</li>
-            <li>Say <strong>next turn</strong> to switch to the next player.</li>
+            <li>Say <strong>"next turn"</strong> to switch to the next player.</li>
             <li>Click a piece to highlight its possible moves. Click a highlighted square to move.</li>
         </ul>
+    </div>
+
+    <div class="voice-controls">
+        <div class="voice-status" id="voice-status">Voice Recognition: Off</div>
+        <button class="voice-btn" id="start-voice-btn" onclick="startVoiceRecognition()">Start Voice Control</button>
+        <button class="voice-btn" id="stop-voice-btn" onclick="stopVoiceRecognition()" disabled>Stop Voice Control</button>
+        <button class="voice-btn" onclick="toggleVoiceFeedback()">Toggle Voice Feedback: <span id="voice-feedback-status">On</span></button>
+        <div class="last-command" id="last-command">Last command: None</div>
+        <div class="error-message" id="error-message"></div>
     </div>
 
     <div class="turn-info">
@@ -189,6 +260,260 @@
         let selectedPiece = null;
         let gameBoard = [];
         let gameEnded = false;
+        
+        // Voice recognition variables
+        let recognition = null;
+        let isListening = false;
+        let voiceFeedbackEnabled = true;
+
+        // Initialize speech recognition
+        function initializeVoiceRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                
+                recognition.continuous = true;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+                
+                recognition.onstart = function() {
+                    isListening = true;
+                    updateVoiceStatus('Listening...');
+                    document.getElementById('start-voice-btn').disabled = true;
+                    document.getElementById('stop-voice-btn').disabled = false;
+                    document.getElementById('start-voice-btn').classList.add('listening');
+                };
+                
+                recognition.onend = function() {
+                    isListening = false;
+                    updateVoiceStatus('Voice Recognition: Off');
+                    document.getElementById('start-voice-btn').disabled = false;
+                    document.getElementById('stop-voice-btn').disabled = true;
+                    document.getElementById('start-voice-btn').classList.remove('listening');
+                };
+                
+                recognition.onresult = function(event) {
+                    const command = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+                    document.getElementById('last-command').textContent = `Last command: "${command}"`;
+                    parseVoiceCommand(command);
+                };
+                
+                recognition.onerror = function(event) {
+                    console.error('Speech recognition error:', event.error);
+                    showError(`Voice recognition error: ${event.error}`);
+                };
+            } else {
+                showError('Speech recognition not supported in this browser. Please use Chrome or Edge.');
+            }
+        }
+
+        // Start voice recognition
+        function startVoiceRecognition() {
+            if (recognition) {
+                recognition.start();
+                speakMessage('Voice control activated');
+            }
+        }
+
+        // Stop voice recognition
+        function stopVoiceRecognition() {
+            if (recognition) {
+                recognition.stop();
+                speakMessage('Voice control deactivated');
+            }
+        }
+
+        // Toggle voice feedback
+        function toggleVoiceFeedback() {
+            voiceFeedbackEnabled = !voiceFeedbackEnabled;
+            document.getElementById('voice-feedback-status').textContent = voiceFeedbackEnabled ? 'On' : 'Off';
+            speakMessage(`Voice feedback ${voiceFeedbackEnabled ? 'enabled' : 'disabled'}`);
+        }
+
+        // Update voice status display
+        function updateVoiceStatus(status) {
+            document.getElementById('voice-status').textContent = status;
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // Text-to-speech function
+        function speakMessage(message) {
+            if (voiceFeedbackEnabled && 'speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(message);
+                utterance.rate = 0.9;
+                utterance.pitch = 1;
+                utterance.volume = 0.8;
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Parse voice commands
+        function parseVoiceCommand(command) {
+            try {
+                // Remove common filler words
+                command = command.replace(/\b(um|uh|like|you know)\b/g, '').trim();
+                
+                // Handle "next turn" command
+                if (command.includes('next turn') || command.includes('next player') || command.includes('switch turn')) {
+                    nextTurn();
+                    return;
+                }
+                
+                // Handle "new game" or "restart" command
+                if (command.includes('new game') || command.includes('restart') || command.includes('reset')) {
+                    restartGame();
+                    return;
+                }
+                
+                // Handle move commands - multiple patterns
+                const movePatterns = [
+                    /(?:move\s+)?([ln]\d+)\s+to\s+([a-h][1-8])/i,
+                    /(?:move\s+)?([ln]\d+)\s+([a-h][1-8])/i,
+                    /([ln]\d+)\s+to\s+([a-h][1-8])/i,
+                    /([ln]\d+)\s+([a-h][1-8])/i
+                ];
+                
+                for (const pattern of movePatterns) {
+                    const match = command.match(pattern);
+                    if (match) {
+                        const pieceLabel = match[1].toUpperCase();
+                        const targetSquare = match[2].toLowerCase();
+                        executeVoiceMove(pieceLabel, targetSquare);
+                        return;
+                    }
+                }
+                
+                // Handle piece selection
+                const selectPattern = /(?:select\s+|choose\s+)?([ln]\d+)/i;
+                const selectMatch = command.match(selectPattern);
+                if (selectMatch) {
+                    const pieceLabel = selectMatch[1].toUpperCase();
+                    selectPieceByLabel(pieceLabel);
+                    return;
+                }
+                
+                // If no pattern matches, provide feedback
+                speakMessage('Command not recognized. Try saying "move L4 to d3" or "next turn"');
+                showError('Command not recognized. Try: "move L4 to d3", "next turn", or "new game"');
+                
+            } catch (error) {
+                console.error('Error parsing voice command:', error);
+                showError('Error processing voice command');
+            }
+        }
+
+        // Execute voice move command
+        function executeVoiceMove(pieceLabel, targetSquare) {
+            try {
+                // Find the piece with the given label
+                const piecePosition = findPieceByLabel(pieceLabel);
+                if (!piecePosition) {
+                    speakMessage(`Piece ${pieceLabel} not found`);
+                    showError(`Piece ${pieceLabel} not found`);
+                    return;
+                }
+                
+                // Check if it's the correct player's piece
+                const piece = gameBoard[piecePosition.row][piecePosition.col];
+                if (piece.player !== currentPlayer) {
+                    speakMessage(`It's not your turn to move ${pieceLabel}`);
+                    showError(`It's not your turn to move ${pieceLabel}`);
+                    return;
+                }
+                
+                // Convert target square to coordinates
+                const targetCoords = squareToCoordinates(targetSquare);
+                if (!targetCoords) {
+                    speakMessage(`Invalid square ${targetSquare}`);
+                    showError(`Invalid square ${targetSquare}`);
+                    return;
+                }
+                
+                // Select the piece and attempt the move
+                selectPiece(piecePosition.row, piecePosition.col);
+                
+                // Check if the move is valid
+                const moves = getPossibleMoves(piecePosition.row, piecePosition.col);
+                const validMove = moves.find(move => move.row === targetCoords.row && move.col === targetCoords.col);
+                
+                if (validMove) {
+                    makeMove(targetCoords.row, targetCoords.col);
+                    speakMessage(`${pieceLabel} moved to ${targetSquare}`);
+                } else {
+                    speakMessage(`Invalid move: ${pieceLabel} cannot move to ${targetSquare}`);
+                    showError(`Invalid move: ${pieceLabel} cannot move to ${targetSquare}`);
+                    clearHighlights();
+                    selectedPiece = null;
+                }
+                
+            } catch (error) {
+                console.error('Error executing voice move:', error);
+                showError('Error executing move');
+            }
+        }
+
+        // Find piece by label
+        function findPieceByLabel(label) {
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const piece = gameBoard[row][col];
+                    if (piece && piece.label === label) {
+                        return { row, col };
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Select piece by label (for voice commands)
+        function selectPieceByLabel(label) {
+            const position = findPieceByLabel(label);
+            if (position) {
+                selectPiece(position.row, position.col);
+                speakMessage(`${label} selected`);
+            } else {
+                speakMessage(`Piece ${label} not found`);
+                showError(`Piece ${label} not found`);
+            }
+        }
+
+        // Convert square notation to coordinates
+        function squareToCoordinates(square) {
+            if (square.length !== 2) return null;
+            
+            const letter = square[0];
+            const number = square[1];
+            
+            if (letter < 'a' || letter > 'h' || number < '1' || number > '8') {
+                return null;
+            }
+            
+            const row = letter.charCodeAt(0) - 'a'.charCodeAt(0);
+            const col = parseInt(number) - 1;
+            
+            return { row, col };
+        }
+
+        // Restart game
+        function restartGame() {
+            gameEnded = false;
+            currentPlayer = 1;
+            selectedPiece = null;
+            document.getElementById('game-status').textContent = '';
+            initializeBoard();
+            createBoard();
+            updateTurnDisplay();
+            speakMessage('New game started');
+        }
 
         // Initialize the game board
         function initializeBoard() {
@@ -337,13 +662,16 @@
                 
                 // Handle capture
                 if (validMove.isJump) {
+                    const capturedPiece = gameBoard[validMove.captureRow][validMove.captureCol];
                     gameBoard[validMove.captureRow][validMove.captureCol] = null;
+                    speakMessage(`${piece.label} captured ${capturedPiece.label}`);
                 }
                 
                 // Check for king promotion
                 if (!piece.isKing) {
                     if ((piece.player === 1 && row === 0) || (piece.player === 2 && row === 7)) {
                         piece.isKing = true;
+                        speakMessage(`${piece.label} is now a king`);
                     }
                 }
                 
@@ -358,6 +686,7 @@
                 if (!gameEnded) {
                     currentPlayer = currentPlayer === 1 ? 2 : 1;
                     updateTurnDisplay();
+                    speakMessage(`Player ${currentPlayer}'s turn`);
                 }
             }
         }
@@ -376,6 +705,7 @@
             selectedPiece = null;
             currentPlayer = currentPlayer === 1 ? 2 : 1;
             updateTurnDisplay();
+            speakMessage(`Player ${currentPlayer}'s turn`);
         }
 
         // Update turn display
@@ -404,9 +734,11 @@
             const statusElement = document.getElementById('game-status');
             if (player1Pieces === 0) {
                 statusElement.textContent = "Player 2 (Black) Wins!";
+                speakMessage("Player 2 wins!");
                 gameEnded = true;
             } else if (player2Pieces === 0) {
                 statusElement.textContent = "Player 1 (Red) Wins!";
+                speakMessage("Player 1 wins!");
                 gameEnded = true;
             }
         }
@@ -415,6 +747,7 @@
         initializeBoard();
         createBoard();
         updateTurnDisplay();
+        initializeVoiceRecognition();
     </script>
 </body>
 </html>
