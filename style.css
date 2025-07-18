@@ -1,1 +1,299 @@
+/* Overlay for Start Page */
+.start-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: url('assets/file_00000000e16c61fdb2ea1df0f1d60762.png') center center/cover no-repeat;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
+.start-content {
+    background: rgba(40, 22, 6, 0.68);
+    border-radius: 24px;
+    padding: 48px 42px 36px 42px;
+    text-align: center;
+    box-shadow: 0 4px 28px 8px rgba(0,0,0,0.13);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.start-title {
+    color: #ffe2ad;
+    font-size: 3.2rem;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 12px #000;
+    margin-bottom: 24px;
+    font-family: 'Segoe UI Black', 'Arial Black', Arial, sans-serif;
+}
+
+.start-game-btn {
+    background: linear-gradient(90deg, #d6341b 0%, #b58863 100%);
+    color: #fffbe9;
+    font-size: 1.45rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 50px;
+    padding: 18px 48px;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.22);
+    transition: background 0.22s, transform 0.12s, box-shadow 0.22s;
+    margin-top: 8px;
+    outline: 2px solid #fffbe9;
+    outline-offset: 2px;
+}
+.start-game-btn:hover,
+.start-game-btn:focus {
+    background: linear-gradient(90deg, #b22109 0%, #8d6d4b 100%);
+    transform: scale(1.045);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.32);
+}
+
+/* The rest of your previous CSS goes here... (see prior code) */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.turn-info {
+    background-color: #e8f4fd;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    text-align: center;
+    border: 2px solid #2196F3;
+    font-size: 1.1em;
+}
+
+/* Voice control button (top) */
+.voice-controls-top {
+    width: 530px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.voice-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.voice-btn:hover {
+    background-color: #45a049;
+}
+
+.voice-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.voice-btn.listening {
+    background-color: #ff4444;
+    animation: pulse 1s infinite;
+}
+
+/* ROTATE TOP BUTTON 180deg for player 2 */
+.voice-btn-rotated {
+    transform: rotate(180deg);
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.voice-status {
+    margin-left: 16px;
+    font-weight: bold;
+    color: #333;
+}
+
+.last-command {
+    margin: 10px 0 0 0;
+    font-style: italic;
+    color: #666;
+    text-align: center;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(8, 60px);
+    grid-template-rows: repeat(8, 60px);
+    gap: 0;
+    border: 2px solid #333;
+    background-color: #333;
+}
+
+.square {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: bold;
+}
+.square.light {
+    background-color: #f0d9b5;
+}
+.square.dark {
+    background-color: #b58863;
+}
+.square.highlighted {
+    background-color: #87CEEB !important;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+}
+.square.possible-move {
+    background-color: #90EE90 !important;
+}
+
+.piece {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 2;
+}
+.piece.red {
+    background-color: #dc3545;
+    color: white;
+}
+.piece.black {
+    background-color: #343a40;
+    color: white;
+}
+.piece.king {
+    border: 3px solid gold;
+}
+.piece.king.black {
+    border-color: cyan;
+}
+.piece-label-player2 {
+    transform: rotate(180deg);
+    display: inline-block;
+}
+.coordinate-label {
+    position: absolute;
+    font-size: 8px;
+    color: #666;
+    font-weight: bold;
+}
+.coordinate-label-player2 {
+    transform: rotate(90deg);
+    display: inline-block;
+}
+.coord-top-left {
+    top: 2px;
+    left: 2px;
+}
+
+.game-status {
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.error-message {
+    color: #ff4444;
+    background-color: #ffe6e6;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+    display: none;
+}
+
+/* BOTTOM CONTROLS (voice + settings) neatly below board */
+.bottom-controls {
+    display: flex;
+    width: 530px;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: 14px;
+}
+/* Space between voice and settings */
+.bottom-controls > *:not(:last-child) {
+    margin-right: 14px;
+}
+
+/* Hide old overlaying bottom voice button */
+.voice-controls-bottom {
+    display: none !important;
+}
+
+/* Settings dropdown styling */
+.settings-dropdown {
+    position: relative;
+    display: inline-block;
+    z-index: 100;
+}
+.settings-btn {
+    background-color: #2196F3;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.settings-btn:hover {
+    background-color: #1976D2;
+}
+.settings-content {
+    display: none;
+    position: absolute;
+    left: 0;
+    bottom: 110%;
+    background-color: #fff;
+    min-width: 200px;
+    box-shadow: 0px 6px 18px 2px rgba(0,0,0,0.11);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #2196F3;
+}
+.settings-dropdown.show .settings-content {
+    display: block;
+}
+.settings-content label {
+    display: block;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 15px;
+    color: #222;
+}
+.settings-content label:hover {
+    background: #f0f0f0;
+}
