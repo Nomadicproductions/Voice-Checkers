@@ -4,293 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkers - Voice Controlled Labels</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .turn-info {
-            background-color: #e8f4fd;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            text-align: center;
-            border: 2px solid #2196F3;
-            font-size: 1.1em;
-        }
-
-        /* Voice control button (top) */
-        .voice-controls-top {
-            width: 530px;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .voice-btn {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .voice-btn:hover {
-            background-color: #45a049;
-        }
-
-        .voice-btn:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-
-        .voice-btn.listening {
-            background-color: #ff4444;
-            animation: pulse 1s infinite;
-        }
-
-        /* ROTATE TOP BUTTON 180deg for player 2 */
-        .voice-btn-rotated {
-            transform: rotate(180deg);
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        .voice-status {
-            margin-left: 16px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .last-command {
-            margin: 10px 0 0 0;
-            font-style: italic;
-            color: #666;
-            text-align: center;
-        }
-
-        .board {
-            display: grid;
-            grid-template-columns: repeat(8, 60px);
-            grid-template-rows: repeat(8, 60px);
-            gap: 0;
-            border: 2px solid #333;
-            background-color: #333;
-        }
-
-        .square {
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            cursor: pointer;
-            font-size: 10px;
-            font-weight: bold;
-        }
-        .square.light {
-            background-color: #f0d9b5;
-        }
-        .square.dark {
-            background-color: #b58863;
-        }
-        .square.highlighted {
-            background-color: #87CEEB !important;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
-        }
-        .square.possible-move {
-            background-color: #90EE90 !important;
-        }
-
-        .piece {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 12px;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            position: relative;
-            z-index: 2;
-        }
-        .piece.red {
-            background-color: #dc3545;
-            color: white;
-        }
-        .piece.black {
-            background-color: #343a40;
-            color: white;
-        }
-        .piece.king {
-            border: 3px solid gold;
-        }
-        .piece.king.black {
-            border-color: cyan;
-        }
-        .piece-label-player2 {
-            transform: rotate(180deg);
-            display: inline-block;
-        }
-        .coordinate-label {
-            position: absolute;
-            font-size: 8px;
-            color: #666;
-            font-weight: bold;
-        }
-        .coordinate-label-player2 {
-            transform: rotate(90deg);
-            display: inline-block;
-        }
-        .coord-top-left {
-            top: 2px;
-            left: 2px;
-        }
-
-        .game-status {
-            margin-top: 20px;
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .error-message {
-            color: #ff4444;
-            background-color: #ffe6e6;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-            display: none;
-        }
-
-        /* BOTTOM CONTROLS (voice + settings) neatly below board */
-        .bottom-controls {
-            display: flex;
-            width: 530px;
-            justify-content: flex-start;
-            align-items: center;
-            margin-top: 14px;
-        }
-        /* Space between voice and settings */
-        .bottom-controls > *:not(:last-child) {
-            margin-right: 14px;
-        }
-
-        /* Hide old overlaying bottom voice button */
-        .voice-controls-bottom {
-            display: none !important;
-        }
-
-        /* Settings dropdown styling */
-        .settings-dropdown {
-            position: relative;
-            display: inline-block;
-            z-index: 100;
-        }
-        .settings-btn {
-            background-color: #2196F3;
-            color: white;
-            padding: 10px 16px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .settings-btn:hover {
-            background-color: #1976D2;
-        }
-        .settings-content {
-            display: none;
-            position: absolute;
-            left: 0;
-            bottom: 110%;
-            background-color: #fff;
-            min-width: 200px;
-            box-shadow: 0px 6px 18px 2px rgba(0,0,0,0.11);
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #2196F3;
-        }
-        .settings-dropdown.show .settings-content {
-            display: block;
-        }
-        .settings-content label {
-            display: block;
-            padding: 10px 16px;
-            cursor: pointer;
-            font-size: 15px;
-            color: #222;
-        }
-        .settings-content label:hover {
-            background: #f0f0f0;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="header">
-        <h1>Checkers - Voice Controlled Labels</h1>
-    </div>
-
-    <div class="turn-info">
-        <div id="turn-display">Player 1's turn (Red L1–L12, skipping 2)</div>
-    </div>
-
-    <!-- Top voice control button for Player 1 (rotated for Player 2's view) -->
-    <div class="voice-controls-top">
-        <button class="voice-btn voice-btn-rotated" id="start-voice-btn-top" onclick="startVoiceRecognition()">
-            🎤 Start Voice Control
-        </button>
-        <div class="voice-status" id="voice-status">Voice Recognition: Off</div>
-    </div>
-
-    <div class="board" id="board"></div>
-
-    <!-- New BOTTOM CONTROLS neatly below the board: voice button + settings -->
-    <div class="bottom-controls">
-        <!-- Bottom voice command button for Player 2 -->
-        <button class="voice-btn" id="start-voice-btn-bottom" onclick="startVoiceRecognition()">
-            🎤 Start Voice Control
-        </button>
-        <!-- Settings dropdown -->
-        <div class="settings-dropdown" id="settings-dropdown">
-            <button class="settings-btn" id="settings-btn" onclick="toggleSettingsDropdown(event)">⚙️ Settings</button>
-            <div class="settings-content" id="settings-content">
-                <label>
-                    <input type="checkbox" id="voice-feedback-checkbox" checked>
-                    Voice prompt feedback
-                </label>
-            </div>
+    <!-- Start Game Overlay -->
+    <div id="start-overlay" class="start-overlay">
+        <div class="start-content">
+            <h1 class="start-title">Checkers</h1>
+            <button id="start-game-btn" class="start-game-btn">Start Game</button>
         </div>
     </div>
 
-    <div class="last-command" id="last-command">Last command: None</div>
-    <div class="error-message" id="error-message"></div>
-    <div class="game-status" id="game-status"></div>
+    <!-- Main Game Content (hidden until game starts) -->
+    <div id="game-container" style="display:none;">
+        <div class="header">
+            <h1>Checkers - Voice Controlled Labels</h1>
+        </div>
+
+        <div class="turn-info">
+            <div id="turn-display">Player 1's turn (Red L1–L12, skipping 2)</div>
+        </div>
+
+        <!-- Top voice control button for Player 1 (rotated for Player 2's view) -->
+        <div class="voice-controls-top">
+            <button class="voice-btn voice-btn-rotated" id="start-voice-btn-top" onclick="startVoiceRecognition()">
+                🎤 Start Voice Control
+            </button>
+            <div class="voice-status" id="voice-status">Voice Recognition: Off</div>
+        </div>
+
+        <div class="board" id="board"></div>
+
+        <!-- New BOTTOM CONTROLS neatly below the board: voice button + settings -->
+        <div class="bottom-controls">
+            <!-- Bottom voice command button for Player 2 -->
+            <button class="voice-btn" id="start-voice-btn-bottom" onclick="startVoiceRecognition()">
+                🎤 Start Voice Control
+            </button>
+            <!-- Settings dropdown -->
+            <div class="settings-dropdown" id="settings-dropdown">
+                <button class="settings-btn" id="settings-btn" onclick="toggleSettingsDropdown(event)">⚙️ Settings</button>
+                <div class="settings-content" id="settings-content">
+                    <label>
+                        <input type="checkbox" id="voice-feedback-checkbox" checked>
+                        Voice prompt feedback
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="last-command" id="last-command">Last command: None</div>
+        <div class="error-message" id="error-message"></div>
+        <div class="game-status" id="game-status"></div>
+    </div>
 
     <script>
-        // SETTINGS DROPDOWN
+        // Start Overlay Logic
+        document.getElementById('start-game-btn').onclick = function() {
+            document.getElementById('start-overlay').style.display = 'none';
+            document.getElementById('game-container').style.display = '';
+        };
+
+        // Close settings dropdown when clicking away
         function toggleSettingsDropdown(event) {
             event.stopPropagation();
             document.getElementById('settings-dropdown').classList.toggle('show');
@@ -298,6 +73,7 @@
         window.addEventListener('click', function() {
             document.getElementById('settings-dropdown').classList.remove('show');
         });
+
         // Voice feedback toggle
         document.addEventListener('DOMContentLoaded', function () {
             const checkbox = document.getElementById('voice-feedback-checkbox');
@@ -740,10 +516,17 @@
             }
         }
 
-        initializeBoard();
-        createBoard();
-        updateTurnDisplay();
-        initializeVoiceRecognition();
+        // Only initialize game when main content is shown!
+        function checkStartGame() {
+            if (document.getElementById('game-container').style.display !== 'none') {
+                initializeBoard();
+                createBoard();
+                updateTurnDisplay();
+                initializeVoiceRecognition();
+            }
+        }
+        // Start game when Start Game is pressed
+        document.getElementById('start-game-btn').addEventListener('click', checkStartGame);
     </script>
 </body>
 </html>
