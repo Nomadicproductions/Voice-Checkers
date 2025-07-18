@@ -20,32 +20,18 @@
             margin-bottom: 20px;
         }
 
-        .instructions {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            max-width: 600px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        .voice-controls-top,
+        .voice-controls-bottom {
+            width: 530px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 12px;
         }
 
-        .instructions ul {
-            text-align: left;
-            padding-left: 20px;
-        }
-
-        .instructions li {
-            margin: 8px 0;
-        }
-
-        .voice-controls {
-            background-color: #e8f5e8;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            border: 2px solid #4CAF50;
-            max-width: 600px;
+        .voice-controls-bottom {
+            justify-content: flex-end;
+            margin-top: 12px;
         }
 
         .voice-btn {
@@ -56,7 +42,6 @@
             border-radius: 5px;
             font-size: 16px;
             cursor: pointer;
-            margin: 5px;
         }
 
         .voice-btn:hover {
@@ -73,6 +58,10 @@
             animation: pulse 1s infinite;
         }
 
+        .voice-btn-rotated {
+            transform: rotate(90deg);
+        }
+
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -80,39 +69,16 @@
         }
 
         .voice-status {
-            margin: 10px 0;
+            margin-left: 16px;
             font-weight: bold;
             color: #333;
         }
 
         .last-command {
-            margin: 5px 0;
+            margin: 10px 0 0 0;
             font-style: italic;
             color: #666;
-        }
-
-        .turn-info {
-            background-color: #e8f4fd;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
             text-align: center;
-            border: 2px solid #2196F3;
-        }
-
-        .next-turn-btn {
-            background-color: #2196F3;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 10px 0;
-        }
-
-        .next-turn-btn:hover {
-            background-color: #1976D2;
         }
 
         .board {
@@ -186,6 +152,11 @@
             border-color: cyan;
         }
 
+        .piece-label-player2 {
+            transform: rotate(180deg);
+            display: inline-block;
+        }
+
         .coordinate-label {
             position: absolute;
             font-size: 8px;
@@ -193,14 +164,14 @@
             font-weight: bold;
         }
 
+        .coordinate-label-player2 {
+            transform: rotate(90deg);
+            display: inline-block;
+        }
+
         .coord-top-left {
             top: 2px;
             left: 2px;
-        }
-
-        .coord-bottom-right {
-            bottom: 2px;
-            right: 2px;
         }
 
         .game-status {
@@ -208,6 +179,16 @@
             font-size: 18px;
             font-weight: bold;
             text-align: center;
+        }
+
+        .turn-info {
+            background-color: #e8f4fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            text-align: center;
+            border: 2px solid #2196F3;
+            font-size: 1.1em;
         }
 
         .error-message {
@@ -225,81 +206,83 @@
         <h1>Checkers - Voice Controlled Labels</h1>
     </div>
 
-    <div class="instructions">
-        <ul>
-            <li>Board squares are labeled <strong>a1 to h8</strong> (row a is top, number 1 is leftmost column). Labels are rotated for both players and are now aligned with the correct squares.</li>
-            <li>Player 1 pieces (light/red) are labeled <strong>L1–L12</strong> (bottom rows).</li>
-            <li>Player 2 pieces (night/black) are labeled <strong>N1–N12</strong> (top rows), labels are rotated 180° for the opposite player.</li>
-            <li>Say moves like: <strong>"move L4 to d3"</strong> or <strong>"L4 to d3"</strong>.</li>
-            <li>For stacked (kinged) pieces: Player 1 = gold cap, Player 2 = cyan cap.</li>
-            <li>Say <strong>"next turn"</strong> to switch to the next player.</li>
-            <li>Click a piece to highlight its possible moves. Click a highlighted square to move.</li>
-        </ul>
-    </div>
-
-    <div class="voice-controls">
-        <div class="voice-status" id="voice-status">Voice Recognition: Off</div>
-        <button class="voice-btn" id="start-voice-btn" onclick="startVoiceRecognition()">Start Voice Control</button>
-        <button class="voice-btn" id="stop-voice-btn" onclick="stopVoiceRecognition()" disabled>Stop Voice Control</button>
-        <button class="voice-btn" onclick="toggleVoiceFeedback()">Toggle Voice Feedback: <span id="voice-feedback-status">On</span></button>
-        <div class="last-command" id="last-command">Last command: None</div>
-        <div class="error-message" id="error-message"></div>
-    </div>
-
     <div class="turn-info">
-        <div id="turn-display">Player 1's turn (Red L1–L12)</div>
-        <button class="next-turn-btn" onclick="nextTurn()">Next Turn</button>
+        <div id="turn-display">Player 1's turn (Red L1–L12, skipping 2)</div>
+    </div>
+
+    <!-- Top voice control button for Player 1 -->
+    <div class="voice-controls-top">
+        <button class="voice-btn" id="start-voice-btn-top" onclick="startVoiceRecognition()">
+            🎤 Start Voice Control
+        </button>
+        <div class="voice-status" id="voice-status">Voice Recognition: Off</div>
     </div>
 
     <div class="board" id="board"></div>
 
+    <!-- Bottom voice control button for Player 2, rotated 90° -->
+    <div class="voice-controls-bottom">
+        <button class="voice-btn voice-btn-rotated" id="start-voice-btn-bottom" onclick="startVoiceRecognition()">
+            🎤 Start Voice Control
+        </button>
+    </div>
+
+    <div class="last-command" id="last-command">Last command: None</div>
+    <div class="error-message" id="error-message"></div>
     <div class="game-status" id="game-status"></div>
 
     <script>
+        function generateLabels(prefix, count) {
+            const labels = [];
+            let n = 1;
+            while (labels.length < count) {
+                if (!n.toString().includes('2')) {
+                    labels.push(prefix + n);
+                }
+                n++;
+            }
+            return labels;
+        }
+
+        function getFilteredBoardCoordinate(row, col) {
+            const letters = 'abcdefgh';
+            const colNumber = col + 3;
+            if (colNumber.toString().includes('2')) return null;
+            return letters[row] + colNumber;
+        }
+
         let currentPlayer = 1; // 1 for red, 2 for black
         let selectedPiece = null;
         let gameBoard = [];
         let gameEnded = false;
-        
-        // Voice recognition variables
+
         let recognition = null;
         let isListening = false;
         let voiceFeedbackEnabled = true;
 
-        // Initialize speech recognition
         function initializeVoiceRecognition() {
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 recognition = new SpeechRecognition();
-                
                 recognition.continuous = true;
                 recognition.interimResults = false;
                 recognition.lang = 'en-US';
-                
                 recognition.onstart = function() {
                     isListening = true;
                     updateVoiceStatus('Listening...');
-                    document.getElementById('start-voice-btn').disabled = true;
-                    document.getElementById('stop-voice-btn').disabled = false;
-                    document.getElementById('start-voice-btn').classList.add('listening');
+                    toggleVoiceBtnState(true);
                 };
-                
                 recognition.onend = function() {
                     isListening = false;
                     updateVoiceStatus('Voice Recognition: Off');
-                    document.getElementById('start-voice-btn').disabled = false;
-                    document.getElementById('stop-voice-btn').disabled = true;
-                    document.getElementById('start-voice-btn').classList.remove('listening');
+                    toggleVoiceBtnState(false);
                 };
-                
                 recognition.onresult = function(event) {
                     const command = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
                     document.getElementById('last-command').textContent = `Last command: "${command}"`;
                     parseVoiceCommand(command);
                 };
-                
                 recognition.onerror = function(event) {
-                    console.error('Speech recognition error:', event.error);
                     showError(`Voice recognition error: ${event.error}`);
                 };
             } else {
@@ -307,7 +290,6 @@
             }
         }
 
-        // Start voice recognition
         function startVoiceRecognition() {
             if (recognition) {
                 recognition.start();
@@ -315,27 +297,26 @@
             }
         }
 
-        // Stop voice recognition
-        function stopVoiceRecognition() {
-            if (recognition) {
-                recognition.stop();
-                speakMessage('Voice control deactivated');
+        function toggleVoiceBtnState(listening) {
+            const btnTop = document.getElementById('start-voice-btn-top');
+            const btnBottom = document.getElementById('start-voice-btn-bottom');
+            if (listening) {
+                btnTop.disabled = true;
+                btnBottom.disabled = true;
+                btnTop.classList.add('listening');
+                btnBottom.classList.add('listening');
+            } else {
+                btnTop.disabled = false;
+                btnBottom.disabled = false;
+                btnTop.classList.remove('listening');
+                btnBottom.classList.remove('listening');
             }
         }
 
-        // Toggle voice feedback
-        function toggleVoiceFeedback() {
-            voiceFeedbackEnabled = !voiceFeedbackEnabled;
-            document.getElementById('voice-feedback-status').textContent = voiceFeedbackEnabled ? 'On' : 'Off';
-            speakMessage(`Voice feedback ${voiceFeedbackEnabled ? 'enabled' : 'disabled'}`);
-        }
-
-        // Update voice status display
         function updateVoiceStatus(status) {
             document.getElementById('voice-status').textContent = status;
         }
 
-        // Show error message
         function showError(message) {
             const errorElement = document.getElementById('error-message');
             errorElement.textContent = message;
@@ -345,7 +326,6 @@
             }, 5000);
         }
 
-        // Text-to-speech function
         function speakMessage(message) {
             if (voiceFeedbackEnabled && 'speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(message);
@@ -356,32 +336,22 @@
             }
         }
 
-        // Parse voice commands
         function parseVoiceCommand(command) {
             try {
-                // Remove common filler words
                 command = command.replace(/\b(um|uh|like|you know)\b/g, '').trim();
-                
-                // Handle "next turn" command
-                if (command.includes('next turn') || command.includes('next player') || command.includes('switch turn')) {
-                    nextTurn();
-                    return;
-                }
-                
-                // Handle "new game" or "restart" command
+
                 if (command.includes('new game') || command.includes('restart') || command.includes('reset')) {
                     restartGame();
                     return;
                 }
-                
-                // Handle move commands - multiple patterns
+
                 const movePatterns = [
-                    /(?:move\s+)?([ln]\d+)\s+to\s+([a-h][1-8])/i,
-                    /(?:move\s+)?([ln]\d+)\s+([a-h][1-8])/i,
-                    /([ln]\d+)\s+to\s+([a-h][1-8])/i,
-                    /([ln]\d+)\s+([a-h][1-8])/i
+                    /(?:move\s+)?([ln]\d+)\s+to\s+([a-h][3-9]|[a-h]10)/i,
+                    /(?:move\s+)?([ln]\d+)\s+([a-h][3-9]|[a-h]10)/i,
+                    /([ln]\d+)\s+to\s+([a-h][3-9]|[a-h]10)/i,
+                    /([ln]\d+)\s+([a-h][3-9]|[a-h]10)/i
                 ];
-                
+
                 for (const pattern of movePatterns) {
                     const match = command.match(pattern);
                     if (match) {
@@ -391,8 +361,7 @@
                         return;
                     }
                 }
-                
-                // Handle piece selection
+
                 const selectPattern = /(?:select\s+|choose\s+)?([ln]\d+)/i;
                 const selectMatch = command.match(selectPattern);
                 if (selectMatch) {
@@ -400,68 +369,59 @@
                     selectPieceByLabel(pieceLabel);
                     return;
                 }
-                
-                // If no pattern matches, provide feedback
-                speakMessage('Command not recognized. Try saying "move L4 to d3" or "next turn"');
-                showError('Command not recognized. Try: "move L4 to d3", "next turn", or "new game"');
-                
+
+                speakMessage('Command not recognized. Try saying "move L3 to e4".');
+                showError('Command not recognized. Try: "move L3 to e4" or "new game".');
+
             } catch (error) {
-                console.error('Error parsing voice command:', error);
                 showError('Error processing voice command');
             }
         }
 
-        // Execute voice move command
         function executeVoiceMove(pieceLabel, targetSquare) {
-            try {
-                // Find the piece with the given label
-                const piecePosition = findPieceByLabel(pieceLabel);
-                if (!piecePosition) {
-                    speakMessage(`Piece ${pieceLabel} not found`);
-                    showError(`Piece ${pieceLabel} not found`);
-                    return;
-                }
-                
-                // Check if it's the correct player's piece
-                const piece = gameBoard[piecePosition.row][piecePosition.col];
-                if (piece.player !== currentPlayer) {
-                    speakMessage(`It's not your turn to move ${pieceLabel}`);
-                    showError(`It's not your turn to move ${pieceLabel}`);
-                    return;
-                }
-                
-                // Convert target square to coordinates
-                const targetCoords = squareToCoordinates(targetSquare);
-                if (!targetCoords) {
-                    speakMessage(`Invalid square ${targetSquare}`);
-                    showError(`Invalid square ${targetSquare}`);
-                    return;
-                }
-                
-                // Select the piece and attempt the move
-                selectPiece(piecePosition.row, piecePosition.col);
-                
-                // Check if the move is valid
-                const moves = getPossibleMoves(piecePosition.row, piecePosition.col);
-                const validMove = moves.find(move => move.row === targetCoords.row && move.col === targetCoords.col);
-                
-                if (validMove) {
-                    makeMove(targetCoords.row, targetCoords.col);
-                    speakMessage(`${pieceLabel} moved to ${targetSquare}`);
-                } else {
-                    speakMessage(`Invalid move: ${pieceLabel} cannot move to ${targetSquare}`);
-                    showError(`Invalid move: ${pieceLabel} cannot move to ${targetSquare}`);
-                    clearHighlights();
-                    selectedPiece = null;
-                }
-                
-            } catch (error) {
-                console.error('Error executing voice move:', error);
-                showError('Error executing move');
+            if (pieceLabel.includes('2') || (targetSquare.match(/\d+/) && targetSquare.match(/\d+/)[0].includes('2'))) {
+                speakMessage(`Number 2 is never used in this game. Try another label.`);
+                showError(`Number 2 is never used in this game. Try another label.`);
+                return;
+            }
+
+            const piecePosition = findPieceByLabel(pieceLabel);
+            if (!piecePosition) {
+                speakMessage(`Piece ${pieceLabel} not found`);
+                showError(`Piece ${pieceLabel} not found`);
+                return;
+            }
+
+            const piece = gameBoard[piecePosition.row][piecePosition.col];
+            if (piece.player !== currentPlayer) {
+                speakMessage(`It's not your turn to move ${pieceLabel}`);
+                showError(`It's not your turn to move ${pieceLabel}`);
+                return;
+            }
+
+            const targetCoords = squareToCoordinates(targetSquare);
+            if (!targetCoords) {
+                speakMessage(`Invalid square ${targetSquare}`);
+                showError(`Invalid square ${targetSquare}`);
+                return;
+            }
+
+            selectPiece(piecePosition.row, piecePosition.col);
+
+            const moves = getPossibleMoves(piecePosition.row, piecePosition.col);
+            const validMove = moves.find(move => move.row === targetCoords.row && move.col === targetCoords.col);
+
+            if (validMove) {
+                makeMove(targetCoords.row, targetCoords.col);
+                speakMessage(`${pieceLabel} moved to ${targetSquare}`);
+            } else {
+                speakMessage(`Invalid move: ${pieceLabel} cannot move to ${targetSquare}`);
+                showError(`Invalid move: ${pieceLabel} cannot move to ${targetSquare}`);
+                clearHighlights();
+                selectedPiece = null;
             }
         }
 
-        // Find piece by label
         function findPieceByLabel(label) {
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
@@ -474,8 +434,12 @@
             return null;
         }
 
-        // Select piece by label (for voice commands)
         function selectPieceByLabel(label) {
+            if (label.includes('2')) {
+                speakMessage(`Number 2 is never used in this game. Try another label.`);
+                showError(`Number 2 is never used in this game. Try another label.`);
+                return;
+            }
             const position = findPieceByLabel(label);
             if (position) {
                 selectPiece(position.row, position.col);
@@ -486,24 +450,19 @@
             }
         }
 
-        // Convert square notation to coordinates
         function squareToCoordinates(square) {
-            if (square.length !== 2) return null;
-            
+            if (square.length < 2) return null;
+            const letters = 'abcdefgh';
             const letter = square[0];
-            const number = square[1];
-            
-            if (letter < 'a' || letter > 'h' || number < '1' || number > '8') {
+            const number = parseInt(square.slice(1));
+            if (letter < 'a' || letter > 'h' || number < 3 || number > 10 || number.toString().includes('2')) {
                 return null;
             }
-            
-            const row = letter.charCodeAt(0) - 'a'.charCodeAt(0);
-            const col = parseInt(number) - 1;
-            
+            const row = letters.indexOf(letter);
+            const col = number - 3;
             return { row, col };
         }
 
-        // Restart game
         function restartGame() {
             gameEnded = false;
             currentPlayer = 1;
@@ -515,100 +474,91 @@
             speakMessage('New game started');
         }
 
-        // Initialize the game board
         function initializeBoard() {
             gameBoard = Array(8).fill().map(() => Array(8).fill(null));
-            
-            // Place black pieces (Player 2) on top rows
-            let blackPieceCount = 1;
+            const redLabels = generateLabels('L', 12);
+            const blackLabels = generateLabels('N', 12);
+
+            let blackPieceIndex = 0;
             for (let row = 0; row < 3; row++) {
                 for (let col = 0; col < 8; col++) {
-                    if ((row + col) % 2 === 1) {
-                        gameBoard[row][col] = {
-                            player: 2,
-                            isKing: false,
-                            label: `N${blackPieceCount}`
-                        };
-                        blackPieceCount++;
+                    if ((row + col) % 2 === 1 && blackPieceIndex < blackLabels.length) {
+                        if (!blackLabels[blackPieceIndex].includes('2')) {
+                            gameBoard[row][col] = {
+                                player: 2,
+                                isKing: false,
+                                label: blackLabels[blackPieceIndex]
+                            };
+                        }
+                        blackPieceIndex++;
                     }
                 }
             }
-            
-            // Place red pieces (Player 1) on bottom rows
-            let redPieceCount = 1;
+
+            let redPieceIndex = 0;
             for (let row = 5; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
-                    if ((row + col) % 2 === 1) {
-                        gameBoard[row][col] = {
-                            player: 1,
-                            isKing: false,
-                            label: `L${redPieceCount}`
-                        };
-                        redPieceCount++;
+                    if ((row + col) % 2 === 1 && redPieceIndex < redLabels.length) {
+                        if (!redLabels[redPieceIndex].includes('2')) {
+                            gameBoard[row][col] = {
+                                player: 1,
+                                isKing: false,
+                                label: redLabels[redPieceIndex]
+                            };
+                        }
+                        redPieceIndex++;
                     }
                 }
             }
         }
 
-        // Convert board coordinates to display format
-        function getBoardCoordinate(row, col) {
-            const letters = 'abcdefgh';
-            return letters[row] + (col + 1);
-        }
-
-        // Create the visual board
         function createBoard() {
             const boardElement = document.getElementById('board');
             boardElement.innerHTML = '';
-            
+
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
                     const square = document.createElement('div');
                     square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
                     square.dataset.row = row;
                     square.dataset.col = col;
-                    
-                    // Add coordinate labels
-                    const coord = getBoardCoordinate(row, col);
-                    const coordLabel = document.createElement('div');
-                    coordLabel.className = 'coordinate-label coord-top-left';
-                    coordLabel.textContent = coord;
-                    square.appendChild(coordLabel);
-                    
-                    // Add piece if exists
+
+                    const coord = getFilteredBoardCoordinate(row, col);
+                    if (coord) {
+                        const coordLabel = document.createElement('div');
+                        coordLabel.className = 'coordinate-label coordinate-label-player2 coord-top-left';
+                        coordLabel.textContent = coord;
+                        square.appendChild(coordLabel);
+                    }
+
                     const piece = gameBoard[row][col];
                     if (piece) {
                         const pieceElement = document.createElement('div');
+                        let extraClass = '';
+                        if (piece.player === 2) extraClass = 'piece-label-player2';
                         pieceElement.className = `piece ${piece.player === 1 ? 'red' : 'black'}${piece.isKing ? ' king' : ''}`;
-                        pieceElement.textContent = piece.label;
+                        pieceElement.innerHTML = `<span class="${extraClass}">${piece.label}</span>`;
                         pieceElement.onclick = (e) => {
                             e.stopPropagation();
                             selectPiece(row, col);
                         };
                         square.appendChild(pieceElement);
                     }
-                    
+
                     square.onclick = () => makeMove(row, col);
                     boardElement.appendChild(square);
                 }
             }
         }
 
-        // Select a piece and show possible moves
         function selectPiece(row, col) {
             if (gameEnded) return;
-            
             const piece = gameBoard[row][col];
             if (!piece || piece.player !== currentPlayer) return;
-            
             clearHighlights();
             selectedPiece = { row, col };
-            
-            // Highlight selected piece
             const square = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
             square.classList.add('highlighted');
-            
-            // Show possible moves
             const moves = getPossibleMoves(row, col);
             moves.forEach(move => {
                 const moveSquare = document.querySelector(`[data-row="${move.row}"][data-col="${move.col}"]`);
@@ -616,73 +566,59 @@
             });
         }
 
-        // Get possible moves for a piece
         function getPossibleMoves(row, col) {
             const piece = gameBoard[row][col];
             if (!piece) return [];
-            
             const moves = [];
-            const directions = piece.isKing ? 
-                [[-1, -1], [-1, 1], [1, -1], [1, 1]] : 
+            const directions = piece.isKing ?
+                [[-1, -1], [-1, 1], [1, -1], [1, 1]] :
                 piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
-            
+
             directions.forEach(([dRow, dCol]) => {
                 const newRow = row + dRow;
                 const newCol = col + dCol;
-                
                 if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
+                    const colNumber = newCol + 3;
+                    if (colNumber.toString().includes('2')) return;
                     if (!gameBoard[newRow][newCol]) {
                         moves.push({ row: newRow, col: newCol, isJump: false });
                     } else if (gameBoard[newRow][newCol].player !== piece.player) {
-                        // Check for jump
                         const jumpRow = newRow + dRow;
                         const jumpCol = newCol + dCol;
-                        if (jumpRow >= 0 && jumpRow < 8 && jumpCol >= 0 && jumpCol < 8 && !gameBoard[jumpRow][jumpCol]) {
+                        const jumpColNumber = jumpCol + 3;
+                        if (jumpRow >= 0 && jumpRow < 8 && jumpCol >= 0 && jumpCol < 8 && !gameBoard[jumpRow][jumpCol] && !jumpColNumber.toString().includes('2')) {
                             moves.push({ row: jumpRow, col: jumpCol, isJump: true, captureRow: newRow, captureCol: newCol });
                         }
                     }
                 }
             });
-            
+
             return moves;
         }
 
-        // Make a move
         function makeMove(row, col) {
             if (gameEnded || !selectedPiece) return;
-            
             const moves = getPossibleMoves(selectedPiece.row, selectedPiece.col);
             const validMove = moves.find(move => move.row === row && move.col === col);
-            
             if (validMove) {
-                // Move the piece
                 const piece = gameBoard[selectedPiece.row][selectedPiece.col];
                 gameBoard[row][col] = piece;
                 gameBoard[selectedPiece.row][selectedPiece.col] = null;
-                
-                // Handle capture
                 if (validMove.isJump) {
                     const capturedPiece = gameBoard[validMove.captureRow][validMove.captureCol];
                     gameBoard[validMove.captureRow][validMove.captureCol] = null;
                     speakMessage(`${piece.label} captured ${capturedPiece.label}`);
                 }
-                
-                // Check for king promotion
                 if (!piece.isKing) {
                     if ((piece.player === 1 && row === 0) || (piece.player === 2 && row === 7)) {
                         piece.isKing = true;
                         speakMessage(`${piece.label} is now a king`);
                     }
                 }
-                
                 clearHighlights();
                 selectedPiece = null;
                 createBoard();
-                
-                // Check for game end
                 checkGameEnd();
-                
-                // Switch turns automatically after a move
                 if (!gameEnded) {
                     currentPlayer = currentPlayer === 1 ? 2 : 1;
                     updateTurnDisplay();
@@ -691,36 +627,22 @@
             }
         }
 
-        // Clear all highlights
         function clearHighlights() {
             document.querySelectorAll('.square').forEach(square => {
                 square.classList.remove('highlighted', 'possible-move');
             });
         }
 
-        // Next turn button
-        function nextTurn() {
-            if (gameEnded) return;
-            clearHighlights();
-            selectedPiece = null;
-            currentPlayer = currentPlayer === 1 ? 2 : 1;
-            updateTurnDisplay();
-            speakMessage(`Player ${currentPlayer}'s turn`);
-        }
-
-        // Update turn display
         function updateTurnDisplay() {
             const turnDisplay = document.getElementById('turn-display');
-            turnDisplay.textContent = currentPlayer === 1 ? 
-                "Player 1's turn (Red L1–L12)" : 
-                "Player 2's turn (Black N1–N12)";
+            turnDisplay.textContent = currentPlayer === 1 ?
+                "Player 1's turn (Red L1–L12, skipping 2)" :
+                "Player 2's turn (Black N1–N12, skipping 2)";
         }
 
-        // Check if game has ended
         function checkGameEnd() {
             let player1Pieces = 0;
             let player2Pieces = 0;
-            
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
                     const piece = gameBoard[row][col];
@@ -730,7 +652,6 @@
                     }
                 }
             }
-            
             const statusElement = document.getElementById('game-status');
             if (player1Pieces === 0) {
                 statusElement.textContent = "Player 2 (Black) Wins!";
@@ -743,7 +664,6 @@
             }
         }
 
-        // Initialize the game
         initializeBoard();
         createBoard();
         updateTurnDisplay();
