@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Command Checkers</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-bar-container">
+                <div class="loading-bar"></div>
+            </div>
+            <p class="loading-text">Loading game assets...</p>
+        </div>
+    </div>
+
+    <!-- Intro Scene -->
+    <div id="intro-scene" class="intro-scene" style="display: none;">
+        <img id="intro-image" class="intro-image" src="" alt="Intro">
+    </div>
+
+    <!-- Start Game Overlay -->
+    <div id="start-overlay" class="start-overlay" style="display: none;">
+        <div class="start-content">
+            <button id="start-game-btn" class="start-game-btn">Start Game</button>
+        </div>
+    </div>
+
+    <!-- Game End Overlay -->
+    <div id="game-end-overlay" class="game-end-overlay" style="display: none;">
+        <div class="game-end-content">
+            <h2 id="game-end-title" class="game-end-title"></h2>
+            <p id="game-end-message" class="game-end-message"></p>
+            <button id="play-again-btn" class="play-again-btn">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Main Game Content (hidden until game starts) -->
+    <div id="game-container" style="display:none;">
+        <!-- Top turn display for Player 2 (rotated) -->
+        <div class="turn-info turn-info-top">
+            <div id="turn-display-top" class="turn-display-rotated">Player 1's turn</div>
+        </div>
+
+        <!-- Top voice control button for Player 2 (rotated for Player 2's view) -->
+        <div class="voice-controls-top">
+            <button class="voice-btn voice-btn-rotated" id="start-voice-btn-top">
+                🎤 Start Voice Control
+            </button>
+            <div class="voice-status voice-status-rotated" id="voice-status">Voice Recognition: Off</div>
+        </div>
+
+        <div class="board" id="board"></div>
+
+        <!-- Bottom turn display for Player 1 -->
+        <div class="turn-info turn-info-bottom">
+            <div id="turn-display-bottom">Player 1's turn</div>
+        </div>
+
+        <!-- Bottom controls: voice button + settings -->
+        <div class="bottom-controls">
+            <!-- Bottom voice command button for Player 1 -->
+            <button class="voice-btn" id="start-voice-btn-bottom">
+                🎤 Start Voice Control
+            </button>
+            <!-- Settings dropdown -->
+            <div class="settings-dropdown" id="settings-dropdown">
+                <button class="settings-btn" id="settings-btn">⚙️ Settings</button>
+                <div class="settings-content" id="settings-content">
+                    <label>
+                        <input type="checkbox" id="voice-feedback-checkbox">
+                        Voice prompt feedback
+                    </label>
+                    <label>
+                        <input type="radio" name="game-mode" value="two-player" checked>
+                        Two Players
+                    </label>
+                    <label>
+                        <input type="radio" name="game-mode" value="ai">
+                        Play vs AI
+                    </label>
+                    <label id="ai-difficulty-container" style="display: none;">
+                        AI Difficulty:
+                        <select id="ai-difficulty">
+                            <option value="easy">Easy</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </label>
+                    <button id="reset-game-btn" class="reset-game-btn">Reset Game</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="last-command" id="last-command">Last command: None</div>
+        <div class="error-message" id="error-message"></div>
+        <div class="game-status" id="game-status"></div>
+        
+        <!-- Logo at bottom -->
+        <div class="bottom-logo">
+            <img src="assets/file_000000007b2862468a3b715616fbfddd.png" alt="Logo" class="game-logo">
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
