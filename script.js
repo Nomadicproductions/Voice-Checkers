@@ -484,9 +484,6 @@ window.addEventListener('DOMContentLoaded', function() {
 
 // Tutorial System for AI vs AI Demonstration
 class CheckersTutorial {
-
-// Tutorial System for AI vs AI Demonstration
-class CheckersTutorial {
     constructor() {
         this.scenarios = [];
         this.currentScenarioIndex = 0;
