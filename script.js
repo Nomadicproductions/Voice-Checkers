@@ -1,4 +1,4 @@
-// Debug System for Mobile Testing
+// Debug System for Mobile Testing - FIXED VERSION
 class DebugSystem {
     constructor() {
         this.errors = [];
@@ -7,16 +7,20 @@ class DebugSystem {
         this.isVisible = false;
         this.startTime = Date.now();
         
-        this.init();
+        // Don't initialize immediately, wait for DOM
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.init());
+        } else {
+            // DOM is already loaded
+            setTimeout(() => this.init(), 100); // Small delay to ensure everything is ready
+        }
     }
     
     init() {
-        // Wait for DOM
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.setupDebugPanel());
-        } else {
-            this.setupDebugPanel();
-        }
+        console.log('Debug system initializing...');
+        
+        // Setup the panel
+        this.setupDebugPanel();
         
         // Capture all errors
         this.captureErrors();
@@ -29,32 +33,66 @@ class DebugSystem {
         
         // Update system info
         this.updateSystemInfo();
+        
+        this.addLog('info', 'Debug system initialized successfully');
     }
     
     setupDebugPanel() {
-        // Toggle button
+        console.log('Setting up debug panel...');
+        
+        // Get elements
         const toggleBtn = document.getElementById('debug-toggle');
         const content = document.getElementById('debug-content');
         const closeBtn = document.getElementById('debug-close');
         
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', () => {
+        console.log('Debug toggle button found:', !!toggleBtn);
+        console.log('Debug content found:', !!content);
+        
+        if (toggleBtn && content) {
+            // Remove any existing listeners
+            toggleBtn.replaceWith(toggleBtn.cloneNode(true));
+            const newToggleBtn = document.getElementById('debug-toggle');
+            
+            // Add click listener
+            newToggleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Debug toggle clicked');
+                this.isVisible = !this.isVisible;
+                content.style.display = this.isVisible ? 'block' : 'none';
+                if (this.isVisible) {
+                    this.updateGameState();
+                    console.log('Debug panel opened');
+                } else {
+                    console.log('Debug panel closed');
+                }
+            });
+            
+            // Also add touch event for mobile
+            newToggleBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Debug toggle touched');
                 this.isVisible = !this.isVisible;
                 content.style.display = this.isVisible ? 'block' : 'none';
                 if (this.isVisible) {
                     this.updateGameState();
                 }
             });
+        } else {
+            console.error('Debug panel elements not found!');
         }
         
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
+        if (closeBtn && content) {
+            closeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 this.isVisible = false;
                 content.style.display = 'none';
             });
         }
         
-        // Quick action buttons
+        // Setup quick action buttons
         this.setupQuickActions();
         
         // Clear buttons
@@ -148,12 +186,14 @@ class DebugSystem {
             this.logs.shift();
         }
         
-        this.updateConsoleDisplay();
+        if (this.isVisible) {
+            this.updateConsoleDisplay();
+        }
     }
     
     trackLoading() {
         // Track various loading steps
-        this.addLoadingStep('Debug system initialized');
+        this.addLoadingStep('Debug system tracking started');
         
         // Track DOM ready
         if (document.readyState === 'complete') {
@@ -172,7 +212,9 @@ class DebugSystem {
                 'Start overlay': document.getElementById('start-overlay'),
                 'Game container': document.getElementById('game-container'),
                 'Board element': document.getElementById('board'),
-                'Tutorial overlay': document.getElementById('tutorial-watch-overlay')
+                'Tutorial overlay': document.getElementById('tutorial-watch-overlay'),
+                'Debug panel': document.getElementById('debug-panel'),
+                'Debug toggle': document.getElementById('debug-toggle')
             };
             
             for (const [name, element] of Object.entries(checks)) {
@@ -194,7 +236,9 @@ class DebugSystem {
             type: type,
             time: `${timestamp}s`
         });
-        this.updateLoadingDisplay();
+        if (this.isVisible) {
+            this.updateLoadingDisplay();
+        }
     }
     
     updateSystemInfo() {
@@ -202,7 +246,7 @@ class DebugSystem {
         if (!info) return;
         
         const userAgent = navigator.userAgent;
-        const platform = navigator.platform;
+        const platform = navigator.platform || 'Unknown';
         const screenSize = `${window.innerWidth}x${window.innerHeight}`;
         const pixelRatio = window.devicePixelRatio || 1;
         const online = navigator.onLine ? 'Yes' : 'No';
@@ -215,14 +259,18 @@ class DebugSystem {
         else if (userAgent.includes('Firefox')) browser = 'Firefox';
         else if (userAgent.includes('Edge')) browser = 'Edge';
         
+        // Check if mobile
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+        
         info.innerHTML = `
             <div>Browser: ${browser}</div>
             <div>Platform: ${platform}</div>
+            <div>Mobile: ${isMobile ? 'Yes' : 'No'}</div>
             <div>Screen: ${screenSize} @${pixelRatio}x</div>
             <div>Touch: ${touchDevice}</div>
             <div>Online: ${online}</div>
             <div>User: joeyaugust1</div>
-            <div>Time: ${new Date().toLocaleString()}</div>
+            <div>Time: 2025-09-06 09:23:34 UTC</div>
         `;
     }
     
@@ -349,8 +397,21 @@ class DebugSystem {
         if (testAudioBtn) {
             testAudioBtn.addEventListener('click', () => {
                 try {
-                    const testAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjiS2Oy9diMFl2z1h2z1h2z1h2z1h2z1hwAAA');
-                    testAudio.play();
+                    // Create a simple beep sound
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 440;
+                    oscillator.type = 'sine';
+                    gainNode.gain.value = 0.3;
+                    
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                    
                     this.addLog('info', 'Audio test played');
                 } catch (e) {
                     this.addLog('error', `Audio test failed: ${e.message}`);
@@ -363,7 +424,7 @@ class DebugSystem {
         if (exportBtn) {
             exportBtn.addEventListener('click', () => {
                 const logData = {
-                    timestamp: new Date().toISOString(),
+                    timestamp: '2025-09-06 09:23:34 UTC',
                     user: 'joeyaugust1',
                     system: {
                         userAgent: navigator.userAgent,
@@ -375,12 +436,15 @@ class DebugSystem {
                     loadingSteps: this.loadingSteps
                 };
                 
-                const blob = new Blob([JSON.stringify(logData, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `debug-log-${Date.now()}.json`;
-                a.click();
+                const dataStr = JSON.stringify(logData, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `debug-log-${Date.now()}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
                 
                 this.addLog('info', 'Debug log exported');
             });
@@ -388,14 +452,38 @@ class DebugSystem {
     }
 }
 
-// Initialize debug system immediately
-const debugSystem = new DebugSystem();
-debugSystem.addLog('info', 'Debug system started at 2025-09-06 08:44:36 UTC');
+// Initialize debug system - wait for DOM to be ready
+let debugSystem = null;
 
-// Add this right after the debug system to catch early errors
-window.addEventListener('DOMContentLoaded', function() {
-    debugSystem.addLoadingStep('DOMContentLoaded event fired');
+// Create debug system when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Creating debug system on DOMContentLoaded');
+        debugSystem = new DebugSystem();
+    });
+} else {
+    // DOM is already loaded
+    console.log('Creating debug system immediately');
+    debugSystem = new DebugSystem();
+}
+
+// Also try to create it on window load as backup
+window.addEventListener('load', function() {
+    if (!debugSystem) {
+        console.log('Creating debug system on window load');
+        debugSystem = new DebugSystem();
+    }
 });
+
+// Add another DOM ready check for the debug system
+window.addEventListener('DOMContentLoaded', function() {
+    if (debugSystem) {
+        debugSystem.addLoadingStep('DOMContentLoaded event fired');
+    }
+});
+
+// Tutorial System for AI vs AI Demonstration
+class CheckersTutorial {
 
 // Tutorial System for AI vs AI Demonstration
 class CheckersTutorial {
