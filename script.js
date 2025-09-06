@@ -1655,4 +1655,151 @@ function showError(message) {
         setTimeout(() => {
             errorElement.style.display = 'none';
         }, 5000);
+    }
+}
+
+function speakMessage(message) {
+    if (voiceFeedbackEnabled && 'speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(message);
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        utterance.volume = 0.8;
+        speechSynthesis.speak(utterance);
+    }
+}
+
+function parseVoiceCommand(command) {
+    try {
+        command = command.replace(/\b(um|uh|like|you know)\b/g, '').trim();
+
+        if (command.includes('next turn') || command.includes('next player') || command.includes('switch turn')) {
+            if (gameMode === 'two-player') {
+                currentPlayer = currentPlayer === 1 ? 2 : 1;
+                checkForForcedMoves();
+                updateTurnDisplay();
+                speakMessage(`Player ${currentPlayer}'s turn`);
+                selectedPiece = null;
+                createBoard();
+            }
+            return;
+        }
+
+        if (command.includes('new game') || command.includes('restart') || command.includes('reset')) {
+            restartGame();
+            return;
+        }
+
+        // Voice move commands
+        const movePatterns = [
+            /move ([ln]\d+) to ([a-h][13456789])/i,
+            /([ln]\d+) to ([a-h][13456789])/i,
+            /piece ([ln]\d+) to ([a-h][13456789])/i
+        ];
+
+        for (const pattern of movePatterns) {
+            const match = command.match(pattern);
+            if (match) {
+                const pieceLabel = match[1].toUpperCase();
+                const targetSquare = match[2].toLowerCase();
+                processVoiceMove(pieceLabel, targetSquare);
+                return;
+            }
+        }
+
+        // Selection commands
+        const selectPatterns = [
+            /select ([ln]\d+)/i,
+            /choose ([ln]\d+)/i,
+            /pick ([ln]\d+)/i
+        ];
+
+        for (const pattern of selectPatterns) {
+            const match = command.match(pattern);
+            if (match) {
+                const pieceLabel = match[1].toUpperCase();
+                const piecePosition = findPieceByLabel(pieceLabel);
+                if (piecePosition && gameBoard[piecePosition.row][piecePosition.col].player === currentPlayer) {
+                    selectPiece(piecePosition.row, piecePosition.col);
+                    speakMessage(`Selected ${pieceLabel}`);
+                } else {
+                    speakMessage(`Cannot find piece ${pieceLabel} or it's not your piece`);
+                    showError(`Cannot find piece ${pieceLabel} or it's not your piece`);
+                }
+                return;
+            }
+        }
+
+        speakMessage('Command not recognized. Try saying "move L1 to a3" or "select L5"');
+        showError('Command not recognized');
+
+    } catch (error) {
+        console.error('Voice command parsing error:', error);
+        speakMessage('Error processing voice command');
+        showError('Error processing voice command');
+    }
+}
+
+function processVoiceMove(pieceLabel, targetSquare) {
+    const piecePosition = findPieceByLabel(pieceLabel);
+    
+    if (!piecePosition) {
+        speakMessage(`Cannot find piece ${pieceLabel}`);
+        showError(`Cannot find piece ${pieceLabel}`);
+        return;
+    }
+
+    const piece = gameBoard[piecePosition.row][piecePosition.col];
+    if (piece.player !== currentPlayer) {
+        speakMessage(`It's not your turn to move ${pieceLabel}`);
+        showError(`It's not your turn to move ${pieceLabel}`);
+        return;
+    }
+
+    const targetCoords = squareToCoordinates(targetSquare);
+    if (!targetCoords) {
+        speakMessage(`Invalid square ${targetSquare}`);
+        showError(`Invalid square ${targetSquare}`);
+        return;
+    }
+
+    selectPiece(piecePosition.row, piecePosition.col);
+
+    const moves = getPossibleMoves(piecePosition.row, piecePosition.col);
+    const validMove = moves.find(move => move.row === targetCoords.row && move.col === targetCoords.col);
+
+    if (validMove) {
+        makeMove(targetCoords.row, targetCoords.col);
+        speakMessage(`${pieceLabel} moved to ${targetSquare}`);
+    } else {
+        speakMessage(`Invalid move: ${pieceLabel} cannot move to ${targetSquare}`);
+        showError(`Invalid move: ${pieceLabel} cannot move to ${targetSquare}`);
+        clearHighlights();
+        selectedPiece = null;
+    }
+}
+
+function findPieceByLabel(label) {
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const piece = gameBoard[row][col];
+            if (piece && piece.label === label) {
+                return { row, col };
+            }
+        }
+    }
+    return null;
+}
+
+function squareToCoordinates(square) {
+    if (square.length !== 2) return null;
+    const letter = square[0];
+    const number = square[1];
+    
+    if (letter < 'a' || letter > 'h' || number < '1' || number > '8' || number === '2') {
+        return null;
+    }
+    const row = letter.charCodeAt(0) - 'a'.charCodeAt(0);
+    const col = parseInt(number) - 1;
+    return { row, col };
+}
     
