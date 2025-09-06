@@ -1,0 +1,1419 @@
+// Tutorial System for AI vs AI Demonstration
+class CheckersTutorial {
+    constructor() {
+        this.scenarios = [];
+        this.currentScenarioIndex = 0;
+        this.currentMoveIndex = 0;
+        this.playbackSpeed = 1.0;
+        this.isPaused = false;
+        this.isPlaying = false;
+        this.tutorialBoard = Array(8).fill().map(() => Array(8).fill(null));
+        
+        // Initialize scenarios
+        this.initializeScenarios();
+    }
+    
+    initializeScenarios() {
+        this.scenarios = [
+            this.createBasicMoveScenario(),
+            this.createCaptureScenario(),
+            this.createMultiCaptureScenario(),
+            this.createKingPromotionScenario(),
+            this.createKingMovementScenario()
+        ];
+    }
+    
+    // Scenario 1: Basic Movement
+    createBasicMoveScenario() {
+        return {
+            id: 'basicMove',
+            title: 'Basic Movement',
+            description: 'Learn how pieces move diagonally',
+            setupBoard: () => {
+                // Clear board
+                this.tutorialBoard = Array(8).fill().map(() => Array(8).fill(null));
+                
+                // Place a few pieces for demonstration
+                this.tutorialBoard[5][0] = { player: 1, isKing: false, label: 'L1' };
+                this.tutorialBoard[5][2] = { player: 1, isKing: false, label: 'L3' };
+                this.tutorialBoard[2][3] = { player: 2, isKing: false, label: 'N1' };
+                this.tutorialBoard[2][5] = { player: 2, isKing: false, label: 'N3' };
+            },
+            moves: [
+                {
+                    from: {row: 5, col: 0},
+                    to: {row: 4, col: 1},
+                    player: 1,
+                    pauseBefore: true,
+                    duration: 2000,
+                    explanation: {
+                        title: 'Diagonal Movement',
+                        text: 'Red pieces move diagonally forward on dark squares. Watch piece L1 move.',
+                        highlightPiece: {row: 5, col: 0},
+                        highlightSquares: [{row: 4, col: 1}],
+                        arrow: {from: {row: 5, col: 0}, to: {row: 4, col: 1}}
+                    }
+                },
+                {
+                    from: {row: 2, col: 3},
+                    to: {row: 3, col: 2},
+                    player: 2,
+                    pauseBefore: true,
+                    duration: 2000,
+                    explanation: {
+                        title: 'Opponent Movement',
+                        text: 'Black pieces also move diagonally forward (from their perspective).',
+                        highlightPiece: {row: 2, col: 3},
+                        highlightSquares: [{row: 3, col: 2}],
+                        arrow: {from: {row: 2, col: 3}, to: {row: 3, col: 2}}
+                    }
+                },
+                {
+                    from: {row: 5, col: 2},
+                    to: {row: 4, col: 3},
+                    player: 1,
+                    pauseBefore: false,
+                    duration: 1500,
+                    explanation: null
+                },
+                {
+                    from: {row: 2, col: 5},
+                    to: {row: 3, col: 4},
+                    player: 2,
+                    pauseAfter: true,
+                    duration: 1500,
+                    explanation: {
+                        title: 'Movement Rules',
+                        text: 'Remember: Regular pieces can only move forward diagonally, one square at a time.',
+                        highlightSquares: []
+                    }
+                }
+            ]
+        };
+    }
+    
+    // Scenario 2: Capturing
+    createCaptureScenario() {
+        return {
+            id: 'capture',
+            title: 'Capturing Opponent Pieces',
+            description: 'Learn how to capture enemy pieces',
+            setupBoard: () => {
+                this.tutorialBoard = Array(8).fill().map(() => Array(8).fill(null));
+                
+                // Set up capture scenario
+                this.tutorialBoard[5][2] = { player: 1, isKing: false, label: 'L1' };
+                this.tutorialBoard[4][3] = { player: 2, isKing: false, label: 'N1' };
+                this.tutorialBoard[3][0] = { player: 2, isKing: false, label: 'N3' };
+                this.tutorialBoard[2][1] = { player: 1, isKing: false, label: 'L3' };
+            },
+            moves: [
+                {
+                    from: {row: 5, col: 2},
+                    to: {row: 3, col: 4},
+                    player: 1,
+                    pauseBefore: true,
+                    duration: 2500,
+                    isCapture: true,
+                    capturedPiece: {row: 4, col: 3},
+                    explanation: {
+                        title: 'Capturing Pieces',
+                        text: 'To capture, jump over an opponent piece diagonally. The jumped piece is removed.',
+                        highlightPiece: {row: 5, col: 2},
+                        highlightSquares: [{row: 3, col: 4}],
+                        highlightCaptured: {row: 4, col: 3},
+                        arrow: {from: {row: 5, col: 2}, to: {row: 3, col: 4}}
+                    }
+                },
+                {
+                    from: {row: 2, col: 1},
+                    to: {row: 4, col: 3},
+                    player: 1,
+                    pauseBefore: true,
+                    duration: 2500,
+                    isCapture: true,
+                    capturedPiece: {row: 3, col: 2},
+                    explanation: {
+                        title: 'Mandatory Capture',
+                        text: 'IMPORTANT: If you can capture, you MUST capture. You cannot make any other move.',
+                        highlightPiece: {row: 2, col: 1},
+                        highlightSquares: [{row: 4, col: 3}],
+                        highlightCaptured: {row: 3, col: 2},
+                        arrow: {from: {row: 2, col: 1}, to: {row: 4, col: 3}}
+                    }
+                }
+            ]
+        };
+    }
+    
+    // Scenario 3: Multiple Captures
+    createMultiCaptureScenario() {
+        return {
+            id: 'multiCapture',
+            title: 'Multiple Captures (Double Jump)',
+            description: 'Chain captures in one turn',
+            setupBoard: () => {
+                this.tutorialBoard = Array(8).fill().map(() => Array(8).fill(null));
+                
+                // Set up double jump scenario
+                this.tutorialBoard[6][1] = { player: 1, isKing: false, label: 'L1' };
+                this.tutorialBoard[5][2] = { player: 2, isKing: false, label: 'N1' };
+                this.tutorialBoard[3][4] = { player: 2, isKing: false, label: 'N3' };
+                this.tutorialBoard[1][6] = { player: 2, isKing: false, label: 'N4' };
+            },
+            moves: [
+                {
+                    from: {row: 6, col: 1},
+                    to: {row: 4, col: 3},
+                    player: 1,
+                    pauseBefore: true,
+                    duration: 2000,
+                    isCapture: true,
+                    capturedPiece: {row: 5, col: 2},
+                    explanation: {
+                        title: 'First Capture',
+                        text: 'Watch L1 capture the first black piece...',
+                        highlightPiece: {row: 6, col: 1},
+                        highlightSquares: [{row: 4, col: 3}],
+                        highlightCaptured: {row: 5, col: 2},
+                        arrow: {from: {row: 6, col: 1}, to: {row: 4, col: 3}}
+                    }
+                },
+                {
+                    from: {row: 4, col: 3},
+                    to: {row: 2, col: 5},
+                    player: 1,
+                    pauseBefore: true,
+                    duration: 2000,
+                    isCapture: true,
+                    capturedPiece: {row: 3, col: 4},
+                    continuesTurn: true,
+                    explanation: {
+                        title: 'Continue Capturing!',
+                        text: 'After a capture, if you can capture again with the same piece, you MUST continue!',
+                        highlightPiece: {row: 4, col: 3},
+                        highlightSquares: [{row: 2, col: 5}],
+                        highlightCaptured: {row: 3, col: 4},
+                        arrow: {from: {row: 4, col: 3}, to: {row: 2, col: 5}}
+                    }
+                },
+                {
+                    from: {row: 2, col: 5},
+                    to: {row: 0, col: 7},
+                    player: 1,
+                    pauseAfter: true,
+                    duration: 2000,
+                    isCapture: true,
+                    capturedPiece: {row: 1, col: 6},
+                    continuesTurn: true,
+                    explanation: {
+                        title: 'Triple Jump!',
+                        text: 'Excellent! Three captures in one turn. This is called a triple jump.',
+                        highlightPiece: {row: 2, col: 5},
+                        highlightSquares: [{row: 0, col: 7}],
+                        highlightCaptured: {row: 1, col: 6}
+                    }
+                }
+            ]
+        };
+    }
+    
+    // Scenario 4: King Promotion
+    createKingPromotionScenario() {
+        return {
+            id: 'kingPromotion',
+            title: 'Becoming a King',
+            description: 'Reach the opposite end to become a King',
+            setupBoard: () => {
+                this.tutorialBoard = Array(8).fill().map(() => Array(8).fill(null));
+                
+                // Set up near-promotion scenario
+                this.tutorialBoard[1][2] = { player: 1, isKing: false, label: 'L1' };
+                this.tutorialBoard[6][5] = { player: 2, isKing: false, label: 'N1' };
+                this.tutorialBoard[3][4] = { player: 1, isKing: false, label: 'L3' };
+            },
+            moves: [
+                {
+                    from: {row: 1, col: 2},
+                    to: {row: 0, col: 3},
+                    player: 1,
+                    pauseBefore: true,
+                    duration: 2500,
+                    promotion: true,
+                    explanation: {
+                        title: 'Reaching the King Row',
+                        text: 'When a piece reaches the opposite end of the board, it becomes a King!',
+                        highlightPiece: {row: 1, col: 2},
+                        highlightSquares: [{row: 0, col: 3}],
+                        arrow: {from: {row: 1, col: 2}, to: {row: 0, col: 3}}
+                    }
+                },
+                {
+                    from: {row: 6, col: 5},
+                    to: {row: 7, col: 4},
+                    player: 2,
+                    pauseAfter: true,
+                    duration: 2500,
+                    promotion: true,
+                    explanation: {
+                        title: 'King Crown',
+                        text: 'Kings are marked with a golden crown. They have special powers!',
+                        highlightPiece: {row: 6, col: 5},
+                        highlightSquares: [{row: 7, col: 4}]
+                    }
+                }
+            ]
+        };
+    }
+    
+    // Scenario 5: King Movement
+    createKingMovementScenario() {
+        return {
+            id: 'kingMovement',
+            title: 'King Powers',
+            description: 'Kings can move forward AND backward',
+            setupBoard: () => {
+                this.tutorialBoard = Array(8).fill().map(() => Array(8).fill(null));
+                
+                // Place kings on board
+                this.tutorialBoard[4][3] = { player: 1, isKing: true, label: 'L1' };
+                this.tutorialBoard[3][4] = { player: 2, isKing: false, label: 'N1' };
+                this.tutorialBoard[5][6] = { player: 2, isKing: false, label: 'N3' };
+            },
+            moves: [
+                {
+                    from: {row: 4, col: 3},
+                    to: {row: 3, col: 2},
+                    player: 1,
+                    pauseBefore: true,
+                    duration: 2000,
+                    explanation: {
+                        title: 'King Movement - Forward',
+                        text: 'Kings can move diagonally forward just like regular pieces.',
+                        highlightPiece: {row: 4, col: 3},
+                        highlightSquares: [{row: 3, col: 2}, {row: 3, col: 4}],
+                        arrow: {from: {row: 4, col: 3}, to: {row: 3, col: 2}}
+                    }
+                },
+                {
+                    from: {row: 3, col: 2},
+                    to: {row: 4, col: 3},
+                    player: 1,
+                    pauseBefore: true,
+                    duration: 2000,
+                    explanation: {
+                        title: 'King Movement - Backward',
+                        text: 'But Kings can ALSO move backward! This makes them very powerful.',
+                        highlightPiece: {row: 3, col: 2},
+                        highlightSquares: [{row: 4, col: 1}, {row: 4, col: 3}],
+                        arrow: {from: {row: 3, col: 2}, to: {row: 4, col: 3}}
+                    }
+                },
+                {
+                    from: {row: 4, col: 3},
+                    to: {row: 2, col: 5},
+                    player: 1,
+                    pauseAfter: true,
+                    duration: 2500,
+                    isCapture: true,
+                    capturedPiece: {row: 3, col: 4},
+                    explanation: {
+                        title: 'King Captures',
+                        text: 'Kings can also capture in any diagonal direction - forward or backward!',
+                        highlightPiece: {row: 4, col: 3},
+                        highlightSquares: [{row: 2, col: 5}],
+                        highlightCaptured: {row: 3, col: 4}
+                    }
+                }
+            ]
+        };
+    }
+    
+    // Start the tutorial
+    start() {
+        this.isPlaying = true;
+        this.currentScenarioIndex = 0;
+        this.currentMoveIndex = 0;
+        this.showTutorialOverlay();
+        this.playScenario();
+    }
+    
+    // Play current scenario
+    playScenario() {
+        const scenario = this.scenarios[this.currentScenarioIndex];
+        
+        // Setup the board for this scenario
+        scenario.setupBoard();
+        this.renderTutorialBoard();
+        
+        // Update progress display
+        this.updateProgress();
+        
+        // Reset move index
+        this.currentMoveIndex = 0;
+        
+        // Start playing moves
+        this.playNextMove();
+    }
+    
+    // Play the next move in sequence
+    playNextMove() {
+        if (!this.isPlaying) return;
+        
+        const scenario = this.scenarios[this.currentScenarioIndex];
+        const move = scenario.moves[this.currentMoveIndex];
+        
+        if (!move) {
+            // Scenario complete, move to next
+            this.nextScenario();
+            return;
+        }
+        
+        // Handle pause before move
+        if (move.pauseBefore) {
+            this.pauseAndShowExplanation(move.explanation, () => {
+                this.executeMove(move);
+            });
+        } else {
+            this.executeMove(move);
+        }
+    }
+    
+    // Execute a single move
+    executeMove(move) {
+        // Clear any existing highlights
+        this.clearHighlights();
+        
+        // Show arrow if specified
+        if (move.explanation && move.explanation.arrow) {
+            this.showArrow(move.explanation.arrow);
+        }
+        
+        // Highlight the piece that will move
+        if (move.explanation && move.explanation.highlightPiece) {
+            this.highlightPiece(move.explanation.highlightPiece);
+        }
+        
+        // Calculate actual move duration based on speed
+        const duration = move.duration / this.playbackSpeed;
+        
+        // Animate the move
+        setTimeout(() => {
+            // Move the piece
+            const piece = this.tutorialBoard[move.from.row][move.from.col];
+            this.tutorialBoard[move.to.row][move.to.col] = piece;
+            this.tutorialBoard[move.from.row][move.from.col] = null;
+            
+            // Handle capture
+            if (move.isCapture && move.capturedPiece) {
+                this.tutorialBoard[move.capturedPiece.row][move.capturedPiece.col] = null;
+            }
+            
+            // Handle promotion
+            if (move.promotion && piece) {
+                piece.isKing = true;
+            }
+            
+            // Re-render board
+            this.renderTutorialBoard();
+            
+            // Handle pause after move
+            if (move.pauseAfter) {
+                this.pauseAndShowExplanation(move.explanation, () => {
+                    this.continueAfterMove();
+                });
+            } else {
+                this.continueAfterMove();
+            }
+        }, duration);
+    }
+    
+    // Continue after a move completes
+    continueAfterMove() {
+        this.currentMoveIndex++;
+        
+        // Small delay between moves
+        setTimeout(() => {
+            this.playNextMove();
+        }, 500 / this.playbackSpeed);
+    }
+    
+    // Pause and show explanation
+    pauseAndShowExplanation(explanation, callback) {
+        this.isPaused = true;
+        
+        // Show explanation box
+        const explBox = document.getElementById('tutorial-explanation-box');
+        const titleEl = document.getElementById('explanation-title');
+        const textEl = document.getElementById('explanation-text');
+        const continueBtn = document.getElementById('continue-tutorial-btn');
+        
+        titleEl.textContent = explanation.title;
+        textEl.textContent = explanation.text;
+        explBox.style.display = 'block';
+        
+        // Highlight relevant squares
+        if (explanation.highlightSquares) {
+            explanation.highlightSquares.forEach(sq => {
+                this.highlightSquare(sq);
+            });
+        }
+        
+        // Highlight captured piece
+        if (explanation.highlightCaptured) {
+            this.highlightCapturedPiece(explanation.highlightCaptured);
+        }
+        
+        // Continue button handler
+        continueBtn.onclick = () => {
+            explBox.style.display = 'none';
+            this.isPaused = false;
+            this.clearHighlights();
+            callback();
+        };
+    }
+    
+    // Move to next scenario
+    nextScenario() {
+        this.currentScenarioIndex++;
+        
+        if (this.currentScenarioIndex >= this.scenarios.length) {
+            // Tutorial complete
+            this.completeTutorial();
+        } else {
+            // Play next scenario after a delay
+            setTimeout(() => {
+                this.playScenario();
+            }, 1500);
+        }
+    }
+    
+    // Complete tutorial
+    completeTutorial() {
+        this.isPlaying = false;
+        this.showCompletionMessage();
+    }
+    
+    // Show completion message
+    showCompletionMessage() {
+        const explBox = document.getElementById('tutorial-explanation-box');
+        const titleEl = document.getElementById('explanation-title');
+        const textEl = document.getElementById('explanation-text');
+        const continueBtn = document.getElementById('continue-tutorial-btn');
+        
+        titleEl.textContent = 'Tutorial Complete!';
+        textEl.textContent = 'You now know all the essential rules of checkers. Ready to play?';
+        continueBtn.textContent = 'Start Playing';
+        explBox.style.display = 'block';
+        
+        continueBtn.onclick = () => {
+            this.exitTutorial();
+        };
+    }
+    
+    // Update progress display
+    updateProgress() {
+        const progressFill = document.querySelector('.progress-fill');
+        const scenarioTitle = document.querySelector('.scenario-title');
+        
+        const progress = ((this.currentScenarioIndex + 1) / this.scenarios.length) * 100;
+        progressFill.style.width = `${progress}%`;
+        
+        const scenario = this.scenarios[this.currentScenarioIndex];
+        scenarioTitle.textContent = `Scenario ${this.currentScenarioIndex + 1} of ${this.scenarios.length}: ${scenario.title}`;
+    }
+    
+    // Render the tutorial board
+    renderTutorialBoard() {
+        const boardElement = document.getElementById('tutorial-board');
+        if (!boardElement) return;
+        
+        boardElement.innerHTML = '';
+        
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const square = document.createElement('div');
+                square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+                square.dataset.row = row;
+                square.dataset.col = col;
+                
+                const piece = this.tutorialBoard[row][col];
+                if (piece) {
+                    const pieceElement = document.createElement('div');
+                    pieceElement.className = `piece ${piece.player === 1 ? 'red' : 'black'}${piece.isKing ? ' king' : ''}`;
+                    pieceElement.innerHTML = `<span>${piece.label}</span>`;
+                    square.appendChild(pieceElement);
+                }
+                
+                boardElement.appendChild(square);
+            }
+        }
+    }
+    
+    // Highlight a specific piece
+    highlightPiece(position) {
+        const square = document.querySelector(`#tutorial-board [data-row="${position.row}"][data-col="${position.col}"]`);
+        if (square) {
+            square.classList.add('tutorial-highlight-piece');
+        }
+    }
+    
+    // Highlight a square
+    highlightSquare(position) {
+        const square = document.querySelector(`#tutorial-board [data-row="${position.row}"][data-col="${position.col}"]`);
+        if (square) {
+            square.classList.add('tutorial-highlight-square');
+        }
+    }
+    
+    // Highlight captured piece
+    highlightCapturedPiece(position) {
+        const square = document.querySelector(`#tutorial-board [data-row="${position.row}"][data-col="${position.col}"]`);
+        if (square) {
+            square.classList.add('tutorial-highlight-captured');
+        }
+    }
+    
+    // Show arrow between positions
+    showArrow(arrow) {
+        const arrowEl = document.getElementById('tutorial-arrow-pointer');
+        if (!arrowEl) return;
+        
+        const fromSquare = document.querySelector(`#tutorial-board [data-row="${arrow.from.row}"][data-col="${arrow.from.col}"]`);
+        const toSquare = document.querySelector(`#tutorial-board [data-row="${arrow.to.row}"][data-col="${arrow.to.col}"]`);
+        
+        if (fromSquare && toSquare) {
+            const fromRect = fromSquare.getBoundingClientRect();
+            const toRect = toSquare.getBoundingClientRect();
+            
+            // Position and rotate arrow
+            arrowEl.style.display = 'block';
+            arrowEl.style.left = `${fromRect.left + fromRect.width/2}px`;
+            arrowEl.style.top = `${fromRect.top + fromRect.height/2}px`;
+            
+            // Calculate angle
+            const angle = Math.atan2(
+                toRect.top - fromRect.top,
+                toRect.left - fromRect.left
+            ) * 180 / Math.PI;
+            
+            arrowEl.style.transform = `rotate(${angle}deg)`;
+        }
+    }
+    
+    // Clear all highlights
+    clearHighlights() {
+        document.querySelectorAll('.tutorial-highlight-piece').forEach(el => {
+            el.classList.remove('tutorial-highlight-piece');
+        });
+        document.querySelectorAll('.tutorial-highlight-square').forEach(el => {
+            el.classList.remove('tutorial-highlight-square');
+        });
+        document.querySelectorAll('.tutorial-highlight-captured').forEach(el => {
+            el.classList.remove('tutorial-highlight-captured');
+        });
+        
+        const arrowEl = document.getElementById('tutorial-arrow-pointer');
+        if (arrowEl) {
+            arrowEl.style.display = 'none';
+        }
+    }
+    
+    // Show tutorial overlay
+    showTutorialOverlay() {
+        const overlay = document.getElementById('tutorial-watch-overlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+        }
+        // Hide other overlays
+        document.getElementById('start-overlay').style.display = 'none';
+        document.getElementById('game-container').style.display = 'none';
+    }
+    
+    // Exit tutorial
+    exitTutorial() {
+        this.isPlaying = false;
+        const overlay = document.getElementById('tutorial-watch-overlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+        
+        // Show start screen again
+        document.getElementById('start-overlay').style.display = 'flex';
+    }
+    
+    // Update playback speed
+    updateSpeed(newSpeed) {
+        this.playbackSpeed = newSpeed;
+    }
+}
+
+// Initialize tutorial when needed
+let tutorialSystem = null;
+
+// Game Variables
+let currentPlayer = 1;
+let selectedPiece = null;
+let gameBoard = [];
+let gameEnded = false;
+let gameMode = 'two-player';
+let aiDifficulty = 'medium';
+let moveHistory = [];
+let mustCapture = false;
+let capturablePieces = [];
+let isAIMoving = false;
+
+// Voice Recognition Variables
+let recognition = null;
+let isListening = false;
+let voiceFeedbackEnabled = false;
+
+// Audio Variables
+const gameAudio = {
+    playerCapture: new Audio('assets/audio/capture player 1 checkers .mp3'),
+    enemyCapture: new Audio('assets/audio/enemy capture checkers _1.mp3'),
+    gameLose: new Audio('assets/audio/game lose checkers .mp3'),
+    gameWin: new Audio('assets/audio/game win checkers .mp3'),
+    movePiece: new Audio('assets/audio/move piece checkers _1_1_1.mp3')
+};
+
+// Set audio volumes
+Object.values(gameAudio).forEach(audio => {
+    audio.volume = 0.5;
+});
+
+// Function to play sound effects
+function playSoundEffect(soundName) {
+    try {
+        const audio = gameAudio[soundName];
+        if (audio) {
+            audio.currentTime = 0;
+            audio.play().catch(err => console.log('Audio play failed:', err));
+        }
+    } catch (err) {
+        console.log('Sound effect error:', err);
+    }
+}
+
+// BULLETPROOF LOADING SYSTEM - Will never get stuck
+function preloadImages(callback) {
+    const images = [
+        'assets/file_000000001e3462308102f8b9c449e32f.png',
+        'assets/file_0000000041206230a7fd6540e0938673.png'
+    ];
+    
+    let loadedCount = 0;
+    let finished = false;
+    const totalImages = images.length;
+    
+    // Ensure callback is only called once
+    function done() {
+        if (!finished) {
+            finished = true;
+            console.log('Image preloading complete');
+            callback();
+        }
+    }
+    
+    // If no images to load, proceed immediately
+    if (totalImages === 0) {
+        done();
+        return;
+    }
+    
+    // Timeout after 3 seconds - proceed even if images don't load
+    const timeoutId = setTimeout(() => {
+        console.warn('Image loading timeout - proceeding anyway');
+        done();
+    }, 3000);
+    
+    // Load each image
+    images.forEach((src, index) => {
+        const img = new Image();
+        
+        img.onload = () => {
+            loadedCount++;
+            console.log(`Image ${index + 1}/${totalImages} loaded: ${src}`);
+            if (loadedCount === totalImages) {
+                clearTimeout(timeoutId);
+                done();
+            }
+        };
+        
+        img.onerror = () => {
+            loadedCount++;
+            console.warn(`Image ${index + 1}/${totalImages} failed: ${src}`);
+            if (loadedCount === totalImages) {
+                clearTimeout(timeoutId);
+                done();
+            }
+        };
+        
+        // Start loading
+        img.src = src;
+    });
+}
+
+// MAIN LOADING SEQUENCE - Guaranteed to proceed
+window.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - Starting game initialization');
+    
+    // Try to preload audio (non-blocking)
+    Object.values(gameAudio).forEach(audio => {
+        audio.load();
+    });
+    
+    // Start image preloading with guaranteed callback
+    preloadImages(() => {
+        console.log('Preloading complete - proceeding to game');
+        
+        // Hide loading screen after a short delay
+        setTimeout(() => {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.display = 'none';
+            }
+            
+            // Try to play intro, or go straight to start screen if it fails
+            try {
+                playIntroSequence();
+            } catch (err) {
+                console.error('Intro sequence failed:', err);
+                showStartScreen();
+            }
+        }, 500);
+    });
+    
+    // ULTIMATE FAILSAFE - Force start after 5 seconds no matter what
+    setTimeout(() => {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen && loadingScreen.style.display !== 'none') {
+            console.error('FAILSAFE: Force hiding loading screen');
+            loadingScreen.style.display = 'none';
+            showStartScreen();
+        }
+    }, 5000);
+});
+
+// Show start screen directly
+function showStartScreen() {
+    const startOverlay = document.getElementById('start-overlay');
+    if (startOverlay) {
+        startOverlay.style.display = 'flex';
+    }
+}
+
+// Play Intro Sequence with error handling
+function playIntroSequence() {
+    const introScene = document.getElementById('intro-scene');
+    const introImage = document.getElementById('intro-image');
+    
+    // Check if elements exist
+    if (!introScene || !introImage) {
+        console.error('Intro elements not found - skipping to start screen');
+        showStartScreen();
+        return;
+    }
+    
+    console.log('Starting intro sequence');
+    introScene.style.display = 'flex';
+    
+    // First image
+    introImage.src = 'assets/file_000000001e3462308102f8b9c449e32f.png';
+    
+    // Handle image load errors
+    introImage.onerror = () => {
+        console.warn('First intro image failed - proceeding to start');
+        introScene.style.display = 'none';
+        showStartScreen();
+    };
+    
+    setTimeout(() => {
+        introImage.classList.add('fade-in');
+    }, 100);
+    
+    // After 3.5 seconds, show second image
+    setTimeout(() => {
+        introImage.classList.remove('fade-in');
+        
+        setTimeout(() => {
+            introImage.src = 'assets/file_0000000041206230a7fd6540e0938673.png';
+            
+            // Handle second image error
+            introImage.onerror = () => {
+                console.warn('Second intro image failed - proceeding to start');
+                introScene.style.display = 'none';
+                showStartScreen();
+            };
+            
+            setTimeout(() => {
+                introImage.classList.add('fade-in');
+            }, 100);
+            
+            // After another 3.5 seconds, show start screen
+            setTimeout(() => {
+                introImage.classList.remove('fade-in');
+                setTimeout(() => {
+                    introScene.style.display = 'none';
+                    showStartScreen();
+                }, 500);
+            }, 3500);
+        }, 500);
+    }, 3500);
+}
+
+// Start Game
+document.getElementById('start-game-btn').onclick = function() {
+    document.getElementById('start-overlay').style.display = 'none';
+    document.getElementById('game-container').style.display = 'flex';
+    initializeGame();
+};
+
+// Tutorial Button Handlers
+document.getElementById('start-tutorial-btn').onclick = function() {
+    if (!tutorialSystem) {
+        tutorialSystem = new CheckersTutorial();
+    }
+    tutorialSystem.start();
+};
+
+// Tutorial button from menu
+document.addEventListener('DOMContentLoaded', function() {
+    const tutorialMenuBtn = document.getElementById('tutorial-menu-btn');
+    if (tutorialMenuBtn) {
+        tutorialMenuBtn.onclick = function() {
+            if (!tutorialSystem) {
+                tutorialSystem = new CheckersTutorial();
+            }
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('settings-dropdown').classList.remove('show');
+            tutorialSystem.start();
+        };
+    }
+    
+    // Speed control
+    const speedSlider = document.getElementById('tutorial-speed');
+    const speedDisplay = document.getElementById('speed-display');
+    if (speedSlider) {
+        speedSlider.addEventListener('input', function() {
+            const speed = parseFloat(this.value);
+            speedDisplay.textContent = `${speed}x`;
+            if (tutorialSystem) {
+                tutorialSystem.updateSpeed(speed);
+            }
+        });
+    }
+    
+    // Exit button
+    const exitBtn = document.getElementById('exit-tutorial-btn');
+    if (exitBtn) {
+        exitBtn.onclick = function() {
+            if (tutorialSystem) {
+                tutorialSystem.exitTutorial();
+            }
+        };
+    }
+});
+
+// Play Again Button
+document.getElementById('play-again-btn').onclick = function() {
+    document.getElementById('game-end-overlay').style.display = 'none';
+    document.getElementById('game-container').style.display = 'flex';
+    restartGame();
+};
+
+// Settings Dropdown
+document.getElementById('settings-btn').onclick = function(event) {
+    event.stopPropagation();
+    document.getElementById('settings-dropdown').classList.toggle('show');
+};
+
+window.addEventListener('click', function(event) {
+    if (!event.target.closest('.settings-content')) {
+        document.getElementById('settings-dropdown').classList.remove('show');
+    }
+});
+
+// Settings Controls
+document.addEventListener('DOMContentLoaded', function () {
+    const voiceCheckbox = document.getElementById('voice-feedback-checkbox');
+    voiceCheckbox.checked = false;
+    voiceCheckbox.addEventListener('change', function () {
+        voiceFeedbackEnabled = voiceCheckbox.checked;
+    });
+
+    const gameModeRadios = document.querySelectorAll('input[name="game-mode"]');
+    const aiDifficultyContainer = document.getElementById('ai-difficulty-container');
+    const aiDifficultySelect = document.getElementById('ai-difficulty');
+    
+    gameModeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            gameMode = this.value;
+            if (gameMode === 'ai') {
+                aiDifficultyContainer.style.display = 'block';
+                aiDifficulty = aiDifficultySelect.value;
+            } else {
+                aiDifficultyContainer.style.display = 'none';
+            }
+            restartGame();
+        });
+    });
+
+    aiDifficultySelect.addEventListener('change', function(event) {
+        event.stopPropagation();
+        aiDifficulty = this.value;
+        console.log('AI Difficulty changed to:', aiDifficulty);
+        if (gameMode === 'ai') {
+            restartGame();
+        }
+    });
+
+    document.getElementById('reset-game-btn').addEventListener('click', function(event) {
+        event.stopPropagation();
+        restartGame();
+        document.getElementById('settings-dropdown').classList.remove('show');
+    });
+});
+
+// Voice Control Button Events
+document.getElementById('start-voice-btn-top').onclick = startVoiceRecognition;
+document.getElementById('start-voice-btn-bottom').onclick = startVoiceRecognition;
+
+// [REST OF YOUR EXISTING GAME FUNCTIONS CONTINUE HERE - Initialize Game, Generate Labels, etc.]
+// ... (All the rest of your game functions from the cleaned script.js)
+
+// Initialize Game
+function initializeGame() {
+    initializeBoard();
+    createBoard();
+    checkForForcedMoves();
+    updateTurnDisplay();
+    initializeVoiceRecognition();
+}
+
+// Generate Labels
+function generateLabels(prefix, count) {
+    const labels = [];
+    let n = 1;
+    while (labels.length < count) {
+        if (!n.toString().includes('2')) {
+            labels.push(prefix + n);
+        }
+        n++;
+    }
+    return labels;
+}
+
+// Get Filtered Board Coordinate
+function getFilteredBoardCoordinate(row, col) {
+    const letters = 'abcdefgh';
+    const colNumber = col + 3;
+    if (colNumber.toString().includes('2')) return null;
+    return letters[row] + colNumber;
+}
+
+// Initialize Board
+function initializeBoard() {
+    gameBoard = Array(8).fill().map(() => Array(8).fill(null));
+    const redLabels = generateLabels('L', 12);
+    const blackLabels = generateLabels('N', 12);
+
+    let blackPieceIndex = 0;
+    for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 8; col++) {
+            if ((row + col) % 2 === 1 && blackPieceIndex < blackLabels.length) {
+                if (!blackLabels[blackPieceIndex].includes('2')) {
+                    gameBoard[row][col] = {
+                        player: 2,
+                        isKing: false,
+                        label: blackLabels[blackPieceIndex]
+                    };
+                }
+                blackPieceIndex++;
+            }
+        }
+    }
+
+    let redPieceIndex = 0;
+    for (let row = 5; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            if ((row + col) % 2 === 1 && redPieceIndex < redLabels.length) {
+                if (!redLabels[redPieceIndex].includes('2')) {
+                    gameBoard[row][col] = {
+                        player: 1,
+                        isKing: false,
+                        label: redLabels[redPieceIndex]
+                    };
+                }
+                redPieceIndex++;
+            }
+        }
+    }
+}
+
+// Check for Forced Moves (captures)
+function checkForForcedMoves() {
+    mustCapture = false;
+    capturablePieces = [];
+    
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const piece = gameBoard[row][col];
+            if (piece && piece.player === currentPlayer) {
+                const moves = getPossibleMoves(row, col);
+                const captures = moves.filter(move => move.isJump);
+                if (captures.length > 0) {
+                    mustCapture = true;
+                    capturablePieces.push({ row, col, captures });
+                }
+            }
+        }
+    }
+}
+
+// Create Board
+function createBoard() {
+    const boardElement = document.getElementById('board');
+    boardElement.innerHTML = '';
+
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const square = document.createElement('div');
+            square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+            square.dataset.row = row;
+            square.dataset.col = col;
+
+            if (mustCapture && capturablePieces.some(p => p.row === row && p.col === col)) {
+                square.classList.add('must-capture');
+            }
+
+            const coord = getFilteredBoardCoordinate(row, col);
+            if (coord) {
+                const coordLabel = document.createElement('div');
+                coordLabel.className = 'coordinate-label coordinate-label-player2 coord-top-left';
+                coordLabel.textContent = coord;
+                square.appendChild(coordLabel);
+            }
+
+            const piece = gameBoard[row][col];
+            if (piece) {
+                const pieceElement = document.createElement('div');
+                let extraClass = '';
+                if (piece.player === 2) extraClass = 'piece-label-player2';
+                pieceElement.className = `piece ${piece.player === 1 ? 'red' : 'black'}${piece.isKing ? ' king' : ''}`;
+                pieceElement.innerHTML = `<span class="${extraClass}">${piece.label}</span>`;
+                pieceElement.onclick = (e) => {
+                    e.stopPropagation();
+                    if (gameMode === 'ai' && currentPlayer === 2 && !isAIMoving) return;
+                    selectPiece(row, col);
+                };
+                square.appendChild(pieceElement);
+            }
+
+            square.onclick = () => {
+                if (gameMode === 'ai' && currentPlayer === 2 && !isAIMoving) return;
+                makeMove(row, col);
+            };
+            boardElement.appendChild(square);
+        }
+    }
+}
+
+// Select Piece
+function selectPiece(row, col) {
+    if (gameEnded) return;
+    const piece = gameBoard[row][col];
+    if (!piece || piece.player !== currentPlayer) return;
+    
+    if (mustCapture && !capturablePieces.some(p => p.row === row && p.col === col)) {
+        showError('You must capture with a piece that can capture!');
+        speakMessage('You must capture');
+        return;
+    }
+    
+    clearHighlights();
+    selectedPiece = { row, col };
+    const square = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    square.classList.add('highlighted');
+    
+    const moves = getPossibleMoves(row, col);
+    const validMoves = mustCapture ? moves.filter(m => m.isJump) : moves;
+    
+    validMoves.forEach(move => {
+        const moveSquare = document.querySelector(`[data-row="${move.row}"][data-col="${move.col}"]`);
+        moveSquare.classList.add('possible-move');
+    });
+}
+
+// Get Possible Moves
+function getPossibleMoves(row, col) {
+    const piece = gameBoard[row][col];
+    if (!piece) return [];
+    const moves = [];
+    const directions = piece.isKing ?
+        [[-1, -1], [-1, 1], [1, -1], [1, 1]] :
+        piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
+
+    directions.forEach(([dRow, dCol]) => {
+        const newRow = row + dRow;
+        const newCol = col + dCol;
+        
+        if (newRow < 0 || newRow >= 8 || newCol < 0 || newCol >= 8) return;
+        
+        const colNumber = newCol + 3;
+        if (colNumber.toString().includes('2')) return;
+        
+        if (!gameBoard[newRow][newCol]) {
+            moves.push({ row: newRow, col: newCol, isJump: false });
+        } 
+        else if (gameBoard[newRow][newCol].player !== piece.player) {
+            const jumpRow = newRow + dRow;
+            const jumpCol = newCol + dCol;
+            
+            if (jumpRow >= 0 && jumpRow < 8 && jumpCol >= 0 && jumpCol < 8) {
+                const jumpColNumber = jumpCol + 3;
+                if (!gameBoard[jumpRow][jumpCol] && !jumpColNumber.toString().includes('2')) {
+                    moves.push({ 
+                        row: jumpRow, 
+                        col: jumpCol, 
+                        isJump: true, 
+                        captureRow: newRow, 
+                        captureCol: newCol 
+                    });
+                }
+            }
+        }
+    });
+
+    return moves;
+}
+
+// Make Move
+function makeMove(row, col, isAIMove = false) {
+    if (gameEnded || !selectedPiece) return;
+    
+    const moves = getPossibleMoves(selectedPiece.row, selectedPiece.col);
+    let validMoves = moves;
+    
+    if (mustCapture) {
+        validMoves = moves.filter(m => m.isJump);
+    }
+    
+    const validMove = validMoves.find(move => move.row === row && move.col === col);
+    
+    if (validMove) {
+        const moveData = {
+            from: { row: selectedPiece.row, col: selectedPiece.col },
+            to: { row, col },
+            piece: JSON.parse(JSON.stringify(gameBoard[selectedPiece.row][selectedPiece.col])),
+            captured: validMove.isJump ? JSON.parse(JSON.stringify(gameBoard[validMove.captureRow][validMove.captureCol])) : null,
+            capturePos: validMove.isJump ? { row: validMove.captureRow, col: validMove.captureCol } : null
+        };
+        moveHistory.push(moveData);
+        
+        const piece = gameBoard[selectedPiece.row][selectedPiece.col];
+        gameBoard[row][col] = piece;
+        gameBoard[selectedPiece.row][selectedPiece.col] = null;
+        
+        let madeCapture = false;
+        if (validMove.isJump) {
+            madeCapture = true;
+            const capturedPiece = gameBoard[validMove.captureRow][validMove.captureCol];
+            gameBoard[validMove.captureRow][validMove.captureCol] = null;
+            
+            if (gameMode === 'ai' && currentPlayer === 2) {
+                playSoundEffect('enemyCapture');
+            } else {
+                playSoundEffect('playerCapture');
+            }
+            
+            speakMessage(`${piece.label} captured ${capturedPiece.label}`);
+        } else {
+            playSoundEffect('movePiece');
+        }
+        
+        if (!piece.isKing) {
+            if ((piece.player === 1 && row === 0) || (piece.player === 2 && row === 7)) {
+                piece.isKing = true;
+                speakMessage(`${piece.label} is now a king`);
+            }
+        }
+        
+        if (madeCapture) {
+            const additionalCaptures = getPossibleMoves(row, col).filter(m => m.isJump);
+            if (additionalCaptures.length > 0) {
+                selectedPiece = { row, col };
+                clearHighlights();
+                checkForForcedMoves();
+                createBoard();
+                
+                if (isAIMove && gameMode === 'ai' && currentPlayer === 2) {
+                    setTimeout(() => {
+                        selectPiece(row, col);
+                        setTimeout(() => {
+                            let bestCapture;
+                            if (aiDifficulty === 'easy') {
+                                bestCapture = additionalCaptures[Math.floor(Math.random() * additionalCaptures.length)];
+                            } else {
+                                bestCapture = additionalCaptures[0];
+                            }
+                            makeMove(bestCapture.row, bestCapture.col, true);
+                        }, 800);
+                    }, 800);
+                } else {
+                    selectPiece(row, col);
+                    updateTurnDisplay();
+                }
+                return;
+            }
+        }
+        
+        clearHighlights();
+        selectedPiece = null;
+        createBoard();
+        
+        if (!checkGameEnd()) {
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            checkForForcedMoves();
+            updateTurnDisplay();
+            createBoard();
+            
+            checkGameEnd();
+            
+            if (!gameEnded && gameMode === 'ai' && currentPlayer === 2) {
+                setTimeout(() => makeAIMove(), 1000);
+            }
+        }
+    }
+}
+
+// AI Implementation
+function makeAIMove() {
+    if (gameEnded) return;
+    
+    isAIMoving = true;
+    checkForForcedMoves();
+    const aiMoves = getAllPossibleMovesForPlayer(2);
+    
+    let availableMoves = aiMoves;
+    if (mustCapture) {
+        availableMoves = aiMoves.filter(m => m.isJump);
+    }
+    
+    if (availableMoves.length === 0) {
+        isAIMoving = false;
+        checkGameEnd();
+        return;
+    }
+    
+    let selectedMove;
+    
+    if (aiDifficulty === 'easy') {
+        selectedMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+    } else if (aiDifficulty === 'medium') {
+        const captures = availableMoves.filter(move => move.isJump);
+        if (captures.length > 0 && Math.random() > 0.2) {
+            selectedMove = captures[Math.floor(Math.random() * captures.length)];
+        } else {
+            selectedMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+        }
+    } else if (aiDifficulty === 'hard') {
+        selectedMove = getBestMove(availableMoves);
+    }
+    
+    if (selectedMove) {
+        selectPiece(selectedMove.from.row, selectedMove.from.col);
+        setTimeout(() => {
+            makeMove(selectedMove.to.row, selectedMove.to.col, true);
+            isAIMoving = false;
+        }, 500);
+    } else {
+        isAIMoving = false;
+    }
+}
+
+function getAllPossibleMovesForPlayer(player) {
+    const allMoves = [];
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const piece = gameBoard[row][col];
+            if (piece && piece.player === player) {
+                const moves = getPossibleMoves(row, col);
+                moves.forEach(move => {
+                    allMoves.push({
+                        from: { row, col },
+                        to: { row: move.row, col: move.col },
+                        isJump: move.isJump,
+                        piece: piece
+                    });
+                });
+            }
+        }
+    }
+    return allMoves;
+}
+
+function getBestMove(moves) {
+    let bestScore = -Infinity;
+    let bestMove = moves[0];
+    
+    moves.forEach(move => {
+        let score = 0;
+        
+        if (move.isJump) score += 20;
+        if (move.piece.isKing) score += 5;
+        
+        if (!move.piece.isKing && move.piece.player === 2) {
+            score += move.to.row * 1.5;
+        }
+        
+        const centerDistance = Math.abs(3.5 - move.to.col) + Math.abs(3.5 - move.to.row);
+        score += (7 - centerDistance) * 0.5;
+        
+        if (move.piece.player === 2 && move.from.row === 0 && !move.piece.isKing) {
+            score -= 3;
+        }
+        
+        if (!move.piece.isKing && (move.to.col === 0 || move.to.col === 7)) {
+            score -= 1;
+        }
+        
+        score += Math.random() * 0.2;
+        
+        if (score > bestScore) {
+            bestScore = score;
+            bestMove = move;
+        }
+    });
+    
+    return bestMove;
+}
+
+// Clear Highlights
+function clearHighlights() {
+    document.querySelectorAll('.square').forEach(square => {
+        square.classList.remove('highlighted', 'possible-move', 'must-capture');
+    });
+}
+
+// Update Turn Display
+function updateTurnDisplay() {
+    let message = currentPlayer === 1 ?
+        "Player 1's turn (Red)" :
+        gameMode === 'ai' ? `AI's turn (Black - ${aiDifficulty})` : "Player 2's turn (Black)";
+    
+    if (mustCapture) {
+        message += " - MUST CAPTURE!";
+    }
+    
+    document.getElementById('turn-display-top').textContent = message;
+    document.getElementById('turn-display-bottom').textContent = message;
+}
+
+// Check Game End
+function checkGameEnd() {
+    let player1Pieces = 0;
+    let player2Pieces = 0;
+    
+    for (let row = 0; row < 8; row++) {
+        for (let col =
