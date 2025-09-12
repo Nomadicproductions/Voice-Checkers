@@ -1382,15 +1382,23 @@ function findPieceByLabel(label) {
 }
 
 function squareToCoordinates(square) {
-    if (square.length !== 2) return null;
+    if (square.length < 2 || square.length > 3) return null;  // Allow for multi-digit numbers
     const letter = square[0];
-    const number = square[1];
+    const numberStr = square.slice(1);  // Get the number part as string
     
-    if (letter < 'a' || letter > 'h' || number < '1' || number > '8' || number === '2') {
+    if (letter < 'a' || letter > 'h') return null;
+    
+    const number = parseInt(numberStr);
+    if (isNaN(number) || number < 1 || number > 8 || numberStr.includes('2')) {
         return null;
     }
+    
     const row = letter.charCodeAt(0) - 'a'.charCodeAt(0);
-    const col = parseInt(number) - 1;
+    const col = number - 3;  // Fixed: should subtract 3 to match getFilteredBoardCoordinate logic
+    
+    // Validate the resulting column is within bounds
+    if (col < 0 || col >= 8) return null;
+    
     return { row, col };
 }
     
