@@ -975,8 +975,7 @@ function getMustCaptures(player) {
         for (let col = 0; col < 8; col++) {
             const piece = board[row][col];
             if (piece && piece.player === player) {
-                const moves = getValidMoves(row, col);
-                if (moves.some(m => m.captured)) {
+                if (hasCaptureMoves(row, col)) {
                     mustCapture.push({ row, col });
                 }
             }
@@ -984,6 +983,34 @@ function getMustCaptures(player) {
     }
     
     return mustCapture;
+}
+
+// Check if a piece has capture moves (without calling getValidMoves)
+function hasCaptureMoves(row, col) {
+    const piece = board[row][col];
+    if (!piece) return false;
+    
+    const directions = piece.isKing 
+        ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+        : piece.player === 1 
+            ? [[-1, -1], [-1, 1]]
+            : [[1, -1], [1, 1]];
+    
+    for (const [dr, dc] of directions) {
+        const jumpRow = row + dr * 2;
+        const jumpCol = col + dc * 2;
+        const middleRow = row + dr;
+        const middleCol = col + dc;
+        
+        if (isValidPosition(jumpRow, jumpCol) && 
+            board[middleRow][middleCol] && 
+            board[middleRow][middleCol].player !== piece.player &&
+            !board[jumpRow][jumpCol]) {
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 // Highlight pieces that must capture
