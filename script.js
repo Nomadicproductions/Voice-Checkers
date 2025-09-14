@@ -705,6 +705,30 @@ let player1PieceCounter = 1;
 let player2PieceCounter = 1;
 const pieceNames = new Map();
 
+// Audio objects
+const gameAudio = {
+    move: new Audio('assets/audio/move piece checkers _1_1_1.mp3'),
+    capture: new Audio('assets/audio/capture player 1 checkers .mp3'),
+    enemyCapture: new Audio('assets/audio/enemy capture checkers _1.mp3'),
+    gameWin: new Audio('assets/audio/game win checkers .mp3'),
+    gameLose: new Audio('assets/audio/game lose checkers .mp3')
+};
+
+// Function to play audio with error handling
+function playAudio(audioName) {
+    try {
+        const audio = gameAudio[audioName];
+        if (audio) {
+            audio.currentTime = 0; // Reset to beginning
+            audio.play().catch(e => {
+                console.log(`Could not play ${audioName} audio:`, e);
+            });
+        }
+    } catch (e) {
+        console.log(`Audio ${audioName} not available:`, e);
+    }
+}
+
 // Image preloading system
 const gameImages = {
     intro1: 'assets/file_0000000041206230a7fd6540e0938673.png',
@@ -819,19 +843,24 @@ function renderBoard() {
             square.dataset.row = row;
             square.dataset.col = col;
             
-            // Add coordinate labels for Player 1's view
+            // Add coordinate labels based on current player orientation
+            const isPlayer2Turn = currentPlayer === 2;
+            
+            // Row numbers (1-8) on the left edge
             if (col === 0) {
                 const label = document.createElement('span');
-                label.className = 'coordinate-label coord-top-left';
-                label.textContent = 8 - row;
+                label.className = `coordinate-label coord-left ${isPlayer2Turn ? 'coordinate-label-player2' : ''}`;
+                label.textContent = isPlayer2Turn ? (row + 1) : (8 - row);
                 square.appendChild(label);
             }
+            
+            // Column letters (A-H) on the bottom edge  
             if (row === 7) {
                 const label = document.createElement('span');
-                label.className = 'coordinate-label coord-top-left';
-                label.style.top = 'auto';
-                label.style.bottom = '2px';
-                label.textContent = String.fromCharCode(65 + col);
+                label.className = `coordinate-label coord-bottom ${isPlayer2Turn ? 'coordinate-label-player2' : ''}`;
+                label.textContent = isPlayer2Turn ? 
+                    String.fromCharCode(72 - col) : // H to A for player 2
+                    String.fromCharCode(65 + col);   // A to H for player 1
                 square.appendChild(label);
             }
             
@@ -843,9 +872,9 @@ function renderBoard() {
                     pieceElement.classList.add('king');
                 }
                 
-                // Add piece label
+                // Add piece label - rotate labels 180° for player 2's turn
                 const labelSpan = document.createElement('span');
-                if (currentPlayer === 2) {
+                if (isPlayer2Turn) {
                     labelSpan.className = 'piece-label-player2';
                 }
                 labelSpan.textContent = piece.label || '';
@@ -1051,6 +1080,13 @@ function makeMove(fromRow, fromCol, toRow, toCol, captured) {
         board[captured.row][captured.col] = null;
         pieceNames.delete(`${captured.row}-${captured.col}`);
         
+        // Play capture audio based on which player captured
+        if (currentPlayer === 1) {
+            playAudio('capture');
+        } else {
+            playAudio('enemyCapture');
+        }
+        
         // Check for additional captures
         const additionalCaptures = getValidMoves(toRow, toCol).filter(m => m.captured);
         if (additionalCaptures.length > 0) {
@@ -1058,6 +1094,9 @@ function makeMove(fromRow, fromCol, toRow, toCol, captured) {
             selectPiece(toRow, toCol);
             return;
         }
+    } else {
+        // Play move sound for non-capture moves
+        playAudio('move');
     }
     
     // Check for king promotion
@@ -1137,6 +1176,21 @@ function endGame() {
         gameEndTitle.textContent = winner;
         gameEndMessage.textContent = 'Great game! Want to play again?';
         gameEndOverlay.style.display = 'flex';
+        
+        // Play win/lose audio
+        if (winner.includes('Player 1')) {
+            if (gameMode === 'two-player') {
+                playAudio('gameWin'); // General win sound
+            } else {
+                playAudio('gameWin'); // Player won against AI
+            }
+        } else {
+            if (gameMode === 'two-player') {
+                playAudio('gameWin'); // General win sound
+            } else {
+                playAudio('gameLose'); // Player lost to AI
+            }
+        }
     }
 }
 
