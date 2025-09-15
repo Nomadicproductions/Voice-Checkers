@@ -1140,7 +1140,10 @@ function makeMove(fromRow, fromCol, toRow, toCol, captured) {
     
     // AI move if needed
     if (gameMode === 'ai' && currentPlayer === 2 && gameActive) {
+        console.log('Triggering AI move - gameMode:', gameMode, 'currentPlayer:', currentPlayer);
         setTimeout(() => makeAIMove(), 1000);
+    } else {
+        console.log('AI not triggered - gameMode:', gameMode, 'currentPlayer:', currentPlayer, 'gameActive:', gameActive);
     }
 }
 
@@ -1248,7 +1251,16 @@ function showGameStatus(message) {
 
 // AI Move Logic
 function makeAIMove() {
-    if (!gameActive || currentPlayer !== 2) return;
+    console.log('makeAIMove called - gameMode:', gameMode, 'currentPlayer:', currentPlayer, 'gameActive:', gameActive);
+    if (!gameActive || currentPlayer !== 2) {
+        console.log('AI move aborted - game not active or wrong player');
+        return;
+    }
+    
+    if (gameMode !== 'ai') {
+        console.log('AI move aborted - game mode is not AI:', gameMode);
+        return;
+    }
     
     const validMoves = [];
     
@@ -1609,9 +1621,21 @@ function setupSettingsControls() {
     const gameModeRadios = document.getElementsByName('game-mode');
     const aiDifficultyContainer = document.getElementById('ai-difficulty-container');
     
+    // Initialize game mode from checked radio button to prevent sync issues
+    gameModeRadios.forEach(radio => {
+        if (radio.checked) {
+            gameMode = radio.value;
+            console.log('Initialized game mode to:', gameMode); // Debug log
+            if (aiDifficultyContainer) {
+                aiDifficultyContainer.style.display = gameMode === 'ai' ? 'block' : 'none';
+            }
+        }
+    });
+    
     gameModeRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
             gameMode = e.target.value;
+            console.log('Game mode changed to:', gameMode); // Debug log
             if (aiDifficultyContainer) {
                 aiDifficultyContainer.style.display = gameMode === 'ai' ? 'block' : 'none';
             }
