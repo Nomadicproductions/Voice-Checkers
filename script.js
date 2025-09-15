@@ -822,11 +822,43 @@ function initializeBoard() {
     }
 }
 
-// Get label for initial board position
+// Get label for initial board position - using new L/S prefix system, skipping "2"
 function getLabelForPosition(row, col, player) {
-    const column = String.fromCharCode(65 + col);
-    const rowNum = 8 - row;
-    return `${column}${rowNum}`;
+    if (player === 1) {
+        // Player 1 uses L prefix: L1, L3, L4, L5, L6, L7, L8, L9, L10, L11, L13, L14
+        return `L${getSkippedNumber(player1PieceCounter++)}`;
+    } else {
+        // Player 2 uses S prefix: S1, S3, S4, S5, S6, S7, S8, S9, S10, S11, S13, S14
+        return `S${getSkippedNumber(player2PieceCounter++)}`;
+    }
+}
+
+// Generate numbers skipping "2" and "12"
+function getSkippedNumber(counter) {
+    if (counter >= 2) counter++; // Skip 2
+    if (counter >= 12) counter++; // Skip 12
+    return counter;
+}
+
+// Generate coordinate labels skipping "2" (1,3,4,5,6,7,8 instead of 1,2,3,4,5,6,7,8)
+function getCoordinateNumber(position) {
+    const numbers = [1, 3, 4, 5, 6, 7, 8]; // Skip 2
+    return numbers[position] || position;
+}
+
+// Convert row/col to coordinate string (like "A3", "B4", etc.) skipping "2"
+function getCoordinateLabel(row, col) {
+    const column = String.fromCharCode(65 + col); // A, B, C, etc.
+    // For rows: 0->8, 1->7, 2->6, 3->5, 4->4, 5->3, 6->1, 7->not displayed (or use a different system)
+    // Actually, let's map it better: we want to skip "2" in the display, so:
+    // Row 0: 8, Row 1: 7, Row 2: 6, Row 3: 5, Row 4: 4, Row 5: 3, Row 6: 1, Row 7: shouldn't exist in an 8x8 with one skipped
+    // Let me rethink this: if we skip "2", we should have: 8,7,6,5,4,3,1 (7 values for 8 rows)
+    // Better approach: map normally but shift after 2
+    let rowNum = 8 - row; // Normal mapping: 0->8, 1->7, 2->6, etc.
+    if (rowNum <= 2) {
+        rowNum -= 1; // Shift down: 2->1, 1->0 (but we don't want 0)
+    }
+    return rowNum > 0 ? `${column}${rowNum}` : null;
 }
 
 // Render the game board
@@ -843,24 +875,12 @@ function renderBoard() {
             square.dataset.row = row;
             square.dataset.col = col;
             
-            // Add coordinate labels based on current player orientation
-            const isPlayer2Turn = currentPlayer === 2;
-            
-            // Row numbers (1-8) on the left edge
-            if (col === 0) {
+            // Add coordinate labels on every square, skipping "2"
+            const coordinateLabel = getCoordinateLabel(row, col);
+            if (coordinateLabel) {
                 const label = document.createElement('span');
-                label.className = `coordinate-label coord-left ${isPlayer2Turn ? 'coordinate-label-player2' : ''}`;
-                label.textContent = isPlayer2Turn ? (row + 1) : (8 - row);
-                square.appendChild(label);
-            }
-            
-            // Column letters (A-H) on the bottom edge  
-            if (row === 7) {
-                const label = document.createElement('span');
-                label.className = `coordinate-label coord-bottom ${isPlayer2Turn ? 'coordinate-label-player2' : ''}`;
-                label.textContent = isPlayer2Turn ? 
-                    String.fromCharCode(72 - col) : // H to A for player 2
-                    String.fromCharCode(65 + col);   // A to H for player 1
+                label.className = `coordinate-label coord-center`;
+                label.textContent = coordinateLabel;
                 square.appendChild(label);
             }
             
@@ -872,9 +892,9 @@ function renderBoard() {
                     pieceElement.classList.add('king');
                 }
                 
-                // Add piece label - rotate labels 180° for player 2's turn
+                // Add piece label - rotate labels 180° for player 2's pieces
                 const labelSpan = document.createElement('span');
-                if (isPlayer2Turn) {
+                if (piece.player === 2) {
                     labelSpan.className = 'piece-label-player2';
                 }
                 labelSpan.textContent = piece.label || '';
@@ -1350,19 +1370,27 @@ function processVoiceCommand(command) {
     }
     
     // Parse move command (e.g., "L1 to A3" or "move L1 to A3")
-    const movePattern = /(?:move\s+)?([a-h][1-8])\s+(?:to\s+)?([a-h][1-8])/i;
+    // First part is piece label (L1, L3, S1, S3, etc.), second part is coordinate (A1, A3, A4, etc.)
+    const movePattern = /(?:move\s+)?([LS]\d+)\s+(?:to\s+)?([a-h][13-8])/i;
     const match = command.match(movePattern);
     
     if (match) {
-        const from = match[1].toUpperCase();
-        const to = match[2].toUpperCase();
+        const pieceLabel = match[1].toUpperCase();
+        const targetCoord = match[2].toUpperCase();
+        
+        // Validate that labels don't contain "2"
+        if (pieceLabel.includes('2') || targetCoord.includes('2')) {
+            showError('Number 2 is not used in this game. Please use valid labels.');
+            if (voiceFeedback) speak('Number 2 is not used in this game');
+            return;
+        }
         
         // Find piece with this label
         let fromPos = null;
         for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
                 const piece = board[row][col];
-                if (piece && piece.label === from && piece.player === currentPlayer) {
+                if (piece && piece.label === pieceLabel && piece.player === currentPlayer) {
                     fromPos = { row, col };
                     break;
                 }
@@ -1370,25 +1398,38 @@ function processVoiceCommand(command) {
         }
         
         if (!fromPos) {
-            showError(`No piece found at ${from}`);
-            if (voiceFeedback) speak(`No piece found at ${from}`);
+            showError(`No piece found with label ${pieceLabel}`);
+            if (voiceFeedback) speak(`No piece found with label ${pieceLabel}`);
             return;
         }
         
-        // Convert destination to board position
-        const toCol = to.charCodeAt(0) - 65;
-        const toRow = 8 - parseInt(to[1]);
+        // Find target position by coordinate
+        let toPos = null;
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                if (getCoordinateLabel(row, col) === targetCoord) {
+                    toPos = { row, col };
+                    break;
+                }
+            }
+        }
+        
+        if (!toPos) {
+            showError(`Invalid coordinate ${targetCoord}`);
+            if (voiceFeedback) speak(`Invalid coordinate ${targetCoord}`);
+            return;
+        }
         
         // Try to make the move
         selectPiece(fromPos.row, fromPos.col);
         const moves = getValidMoves(fromPos.row, fromPos.col);
-        const move = moves.find(m => m.row === toRow && m.col === toCol);
+        const move = moves.find(m => m.row === toPos.row && m.col === toPos.col);
         
         if (move) {
-            makeMove(fromPos.row, fromPos.col, toRow, toCol, move.captured);
-            if (voiceFeedback) speak(`Moving ${from} to ${to}`);
+            makeMove(fromPos.row, fromPos.col, toPos.row, toPos.col, move.captured);
+            if (voiceFeedback) speak(`Moving ${pieceLabel} to ${targetCoord}`);
         } else {
-            showError(`Invalid move: ${from} to ${to}`);
+            showError(`Invalid move: ${pieceLabel} to ${targetCoord}`);
             if (voiceFeedback) speak(`Invalid move`);
             clearSelection();
         }
