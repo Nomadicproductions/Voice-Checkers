@@ -849,16 +849,18 @@ function getCoordinateNumber(position) {
 // Convert row/col to coordinate string (like "A3", "B4", etc.) skipping "2"
 function getCoordinateLabel(row, col) {
     const column = String.fromCharCode(65 + col); // A, B, C, etc.
-    // For rows: 0->8, 1->7, 2->6, 3->5, 4->4, 5->3, 6->1, 7->not displayed (or use a different system)
-    // Actually, let's map it better: we want to skip "2" in the display, so:
-    // Row 0: 8, Row 1: 7, Row 2: 6, Row 3: 5, Row 4: 4, Row 5: 3, Row 6: 1, Row 7: shouldn't exist in an 8x8 with one skipped
-    // Let me rethink this: if we skip "2", we should have: 8,7,6,5,4,3,1 (7 values for 8 rows)
-    // Better approach: map normally but shift after 2
-    let rowNum = 8 - row; // Normal mapping: 0->8, 1->7, 2->6, etc.
+    // We want to skip "2" in the row numbering
+    // Normal checkers: row 0 = "8", row 1 = "7", etc., row 7 = "1"
+    // Skipping "2": row 0 = "8", row 1 = "7", row 2 = "6", row 3 = "5", row 4 = "4", row 5 = "3", row 6 = "1", row 7 = skip
+    let rowNum = 8 - row; // Start with normal mapping
     if (rowNum <= 2) {
-        rowNum -= 1; // Shift down: 2->1, 1->0 (but we don't want 0)
+        if (rowNum === 2) {
+            return null; // Skip row "2" entirely
+        } else if (rowNum === 1) {
+            rowNum = 1; // Keep row "1"
+        }
     }
-    return rowNum > 0 ? `${column}${rowNum}` : null;
+    return `${column}${rowNum}`;
 }
 
 // Render the game board
