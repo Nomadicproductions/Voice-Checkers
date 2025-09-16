@@ -732,7 +732,6 @@ function playAudio(audioName) {
 // Image preloading system
 const gameImages = {
     intro1: 'assets/file_0000000041206230a7fd6540e0938673.png',
-    intro2: 'assets/file_000000007b2862468a3b715616fbfddd.png',
     intro3: 'assets/file_000000001e3462308102f8b9c449e32f.png',
     startBg: 'assets/file_0000000041206230a7fd6540e0938673.png'
 };
@@ -1716,33 +1715,42 @@ async function showIntroSequence() {
     // Show intro scene
     introScene.style.display = 'flex';
     
-    const introImages = ['intro1', 'intro2', 'intro3'];
+    const introImages = ['intro1', 'intro3']; // Only first and last image
     
     for (let i = 0; i < introImages.length; i++) {
         const imageKey = introImages[i];
         if (loadedImages[imageKey]) {
-            // Fade in (0.7s)
+            // Set image source first
             introImage.src = loadedImages[imageKey].src;
+            
+            // Start with opacity 0, then fade in
+            introImage.style.opacity = '0';
+            await new Promise(resolve => setTimeout(resolve, 50)); // Small delay to ensure image loads
+            
+            // Fade in (1s for better visibility)
             introImage.classList.add('fade-in');
-            await new Promise(resolve => setTimeout(resolve, 700));
+            await new Promise(resolve => setTimeout(resolve, 1000));
             
-            // Display for 4 seconds
-            await new Promise(resolve => setTimeout(resolve, 4000));
+            // Display for 3 seconds
+            await new Promise(resolve => setTimeout(resolve, 3000));
             
-            // Fade out (0.4s) - only if not the last image
+            // Fade out - only if not the last image
             if (i < introImages.length - 1) {
                 introImage.classList.remove('fade-in');
-                await new Promise(resolve => setTimeout(resolve, 400));
+                await new Promise(resolve => setTimeout(resolve, 700)); // Wait for fade out
             }
         }
     }
     
     // Final fade out of last image
     introImage.classList.remove('fade-in');
-    await new Promise(resolve => setTimeout(resolve, 400));
+    await new Promise(resolve => setTimeout(resolve, 700));
     
-    // Hide intro and show start overlay
+    // Add 1 second of black screen before start overlay
     introScene.style.display = 'none';
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Show start overlay
     const startOverlay = document.getElementById('start-overlay');
     if (startOverlay) {
         startOverlay.style.display = 'flex';

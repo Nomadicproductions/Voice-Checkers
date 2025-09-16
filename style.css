@@ -63,7 +63,7 @@
     max-height: 100%;
     object-fit: contain;
     opacity: 0;
-    transition: opacity 0.7s ease-in-out;
+    transition: opacity 1s ease-in-out;
 }
 
 .intro-image.fade-in {
@@ -80,8 +80,9 @@
     background-color: #1a1a1a;
     z-index: 10000;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
+    padding-bottom: 80px; /* Space from bottom */
 }
 
 .start-background-image {
@@ -99,10 +100,10 @@
 .start-content {
     position: relative;
     z-index: 1;
-    background: rgba(26, 26, 26, 0.85);
+    background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(10px);
     border-radius: 24px;
-    padding: 36px;
+    padding: 24px 36px;
     text-align: center;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     display: flex;
@@ -1007,6 +1008,14 @@ body {
     
     .start-background-image {
         background-size: contain;
+    }
+    
+    .start-overlay {
+        padding-bottom: 40px; /* Less space on mobile */
+    }
+    
+    .start-content {
+        padding: 16px 24px; /* Smaller padding on mobile */
     }
     
     .bottom-logo {
