@@ -733,6 +733,7 @@ function playAudio(audioName) {
 const gameImages = {
     intro1: 'assets/file_0000000041206230a7fd6540e0938673.png',
     intro2: 'assets/file_000000007b2862468a3b715616fbfddd.png',
+    intro3: 'assets/file_000000001e3462308102f8b9c449e32f.png',
     startBg: 'assets/file_0000000041206230a7fd6540e0938673.png'
 };
 
@@ -877,7 +878,14 @@ function renderBoard() {
             const coordinateLabel = getCoordinateLabel(row, col);
             if (coordinateLabel) {
                 const label = document.createElement('span');
-                label.className = `coordinate-label coord-center`;
+                // Use top-left positioning instead of center
+                label.className = `coordinate-label coord-top-left`;
+                
+                // Add rotation for player 2 in two-player mode
+                if (gameMode === 'two-player' && currentPlayer === 2) {
+                    label.classList.add('coordinate-label-player2');
+                }
+                
                 label.textContent = coordinateLabel;
                 square.appendChild(label);
             }
@@ -1291,15 +1299,38 @@ function makeAIMove() {
     // Select move based on difficulty
     let selectedMove;
     if (aiDifficulty === 'easy') {
-        // Random move
+        // Easy: Completely random moves with no strategic intent
         selectedMove = validMoves[Math.floor(Math.random() * validMoves.length)];
     } else if (aiDifficulty === 'medium') {
-        // Good move with some randomness
-        const topMoves = validMoves.slice(0, Math.min(3, validMoves.length));
-        selectedMove = topMoves[Math.floor(Math.random() * topMoves.length)];
+        // Medium: Mix of random and strategic moves
+        const shouldPlayRandom = Math.random() < 0.4; // 40% chance for random move
+        if (shouldPlayRandom) {
+            // Pick a random move from all valid moves
+            selectedMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+        } else {
+            // Pick from top strategic moves with some randomness
+            const strategicMoves = validMoves.slice(0, Math.min(4, validMoves.length));
+            selectedMove = strategicMoves[Math.floor(Math.random() * strategicMoves.length)];
+        }
     } else {
-        // Best move
-        selectedMove = validMoves[0];
+        // Hard: Always strategic - focus on captures, crowning, and blocking
+        // Prefer capture moves, then king promotion moves, then defensive moves
+        const captureMoves = validMoves.filter(move => move.captured);
+        const promotionMoves = validMoves.filter(move => {
+            const piece = board[move.from.row][move.from.col];
+            return !piece.isKing && move.to.row === 0; // Reaching top row for promotion
+        });
+        
+        if (captureMoves.length > 0) {
+            // Always prioritize capture moves
+            selectedMove = captureMoves[0];
+        } else if (promotionMoves.length > 0) {
+            // Next priority: king promotion
+            selectedMove = promotionMoves[0];
+        } else {
+            // Use best strategic move
+            selectedMove = validMoves[0];
+        }
     }
     
     if (selectedMove) {
@@ -1685,23 +1716,30 @@ async function showIntroSequence() {
     // Show intro scene
     introScene.style.display = 'flex';
     
-    // Display first intro image
-    if (loadedImages.intro1) {
-        introImage.src = loadedImages.intro1.src;
-        introImage.classList.add('fade-in');
-        
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Switch to second image
-        introImage.classList.remove('fade-in');
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        if (loadedImages.intro2) {
-            introImage.src = loadedImages.intro2.src;
+    const introImages = ['intro1', 'intro2', 'intro3'];
+    
+    for (let i = 0; i < introImages.length; i++) {
+        const imageKey = introImages[i];
+        if (loadedImages[imageKey]) {
+            // Fade in (0.7s)
+            introImage.src = loadedImages[imageKey].src;
             introImage.classList.add('fade-in');
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, 700));
+            
+            // Display for 4 seconds
+            await new Promise(resolve => setTimeout(resolve, 4000));
+            
+            // Fade out (0.4s) - only if not the last image
+            if (i < introImages.length - 1) {
+                introImage.classList.remove('fade-in');
+                await new Promise(resolve => setTimeout(resolve, 400));
+            }
         }
     }
+    
+    // Final fade out of last image
+    introImage.classList.remove('fade-in');
+    await new Promise(resolve => setTimeout(resolve, 400));
     
     // Hide intro and show start overlay
     introScene.style.display = 'none';
