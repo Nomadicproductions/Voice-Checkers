@@ -1099,10 +1099,16 @@ function makeMove(fromRow, fromCol, toRow, toCol, captured) {
         pieceNames.delete(`${captured.row}-${captured.col}`);
         
         // Play capture audio based on which player captured
-        if (currentPlayer === 1) {
+        if (gameMode === 'two-player') {
+            // In two-player mode, always use player 1's capture sound
             playAudio('capture');
         } else {
-            playAudio('enemyCapture');
+            // In AI mode, use different sounds for each player
+            if (currentPlayer === 1) {
+                playAudio('capture');
+            } else {
+                playAudio('enemyCapture');
+            }
         }
         
         // Check for additional captures
