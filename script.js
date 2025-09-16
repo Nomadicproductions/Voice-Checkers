@@ -849,16 +849,12 @@ function getCoordinateNumber(position) {
 // Convert row/col to coordinate string (like "A3", "B4", etc.) skipping "2"
 function getCoordinateLabel(row, col) {
     const column = String.fromCharCode(65 + col); // A, B, C, etc.
-    // We want to skip "2" in the row numbering
-    // Normal checkers: row 0 = "8", row 1 = "7", etc., row 7 = "1"
-    // Skipping "2": row 0 = "8", row 1 = "7", row 2 = "6", row 3 = "5", row 4 = "4", row 5 = "3", row 6 = "1", row 7 = skip
-    let rowNum = 8 - row; // Start with normal mapping
-    if (rowNum <= 2) {
-        if (rowNum === 2) {
-            return null; // Skip row "2" entirely
-        } else if (rowNum === 1) {
-            rowNum = 1; // Keep row "1"
-        }
+    // We want to skip "2" in the row numbering by replacing with "13" (contains 3)
+    // New mapping: row 0 = "8", row 1 = "7", row 2 = "6", row 3 = "5", row 4 = "4", row 5 = "3", row 6 = "13", row 7 = "1"
+    // This gives coordinates containing "3" (like A13, B13) for the row that would have been "2"
+    let rowNum = 8 - row; // Start with normal mapping (8,7,6,5,4,3,2,1)
+    if (rowNum === 2) {
+        rowNum = 13; // Replace "2" with "13" (contains 3) to avoid voice command confusion
     }
     return `${column}${rowNum}`;
 }
@@ -1384,8 +1380,8 @@ function processVoiceCommand(command) {
     }
     
     // Parse move command (e.g., "L1 to A3" or "move L1 to A3")
-    // First part is piece label (L1, L3, S1, S3, etc.), second part is coordinate (A1, A3, A4, etc.)
-    const movePattern = /(?:move\s+)?([LS]\d+)\s+(?:to\s+)?([a-h][13-8])/i;
+    // First part is piece label (L1, L3, S1, S3, etc.), second part is coordinate (A1, A3, A4, A13, etc.)
+    const movePattern = /(?:move\s+)?([LS]\d+)\s+(?:to\s+)?([a-h](?:13|[13-8]))/i;
     const match = command.match(movePattern);
     
     if (match) {
@@ -1417,30 +1413,41 @@ function processVoiceCommand(command) {
             return;
         }
         
-        // Find target position by coordinate
-        let toPos = null;
+        // Find target position by coordinate - handle potential duplicates by checking valid moves
+        let targetPositions = [];
         for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
                 if (getCoordinateLabel(row, col) === targetCoord) {
-                    toPos = { row, col };
-                    break;
+                    targetPositions.push({ row, col });
                 }
             }
         }
         
-        if (!toPos) {
+        if (targetPositions.length === 0) {
             showError(`Invalid coordinate ${targetCoord}`);
             if (voiceFeedback) speak(`Invalid coordinate ${targetCoord}`);
             return;
         }
         
-        // Try to make the move
+        // Try to make the move - prioritize the target position that is a valid move
         selectPiece(fromPos.row, fromPos.col);
         const moves = getValidMoves(fromPos.row, fromPos.col);
-        const move = moves.find(m => m.row === toPos.row && m.col === toPos.col);
         
-        if (move) {
-            makeMove(fromPos.row, fromPos.col, toPos.row, toPos.col, move.captured);
+        let selectedMove = null;
+        let selectedToPos = null;
+        
+        // Find which target position matches a valid move
+        for (const toPos of targetPositions) {
+            const move = moves.find(m => m.row === toPos.row && m.col === toPos.col);
+            if (move) {
+                selectedMove = move;
+                selectedToPos = toPos;
+                break;
+            }
+        }
+        
+        if (selectedMove && selectedToPos) {
+            makeMove(fromPos.row, fromPos.col, selectedToPos.row, selectedToPos.col, selectedMove.captured);
             if (voiceFeedback) speak(`Moving ${pieceLabel} to ${targetCoord}`);
         } else {
             showError(`Invalid move: ${pieceLabel} to ${targetCoord}`);
