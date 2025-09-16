@@ -1720,41 +1720,39 @@ async function showIntroSequence() {
     for (let i = 0; i < introImages.length; i++) {
         const imageKey = introImages[i];
         if (loadedImages[imageKey]) {
-            // Set image source first
+            // Set image source and ensure it's ready
             introImage.src = loadedImages[imageKey].src;
             
-            // Start with opacity 0, then fade in
-            introImage.style.opacity = '0';
-            await new Promise(resolve => setTimeout(resolve, 50)); // Small delay to ensure image loads
+            // Make sure image starts invisible, remove any previous fade-in class
+            introImage.classList.remove('fade-in');
+            await new Promise(resolve => setTimeout(resolve, 100)); // Let CSS reset
             
-            // Fade in (1s for better visibility)
+            // Add fade-in class to trigger CSS transition
             introImage.classList.add('fade-in');
-            await new Promise(resolve => setTimeout(resolve, 1000));
             
-            // Display for 3 seconds
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            // Wait for fade-in to complete plus display time
+            await new Promise(resolve => setTimeout(resolve, 4000)); // 1s fade + 3s display
             
             // Fade out - only if not the last image
             if (i < introImages.length - 1) {
                 introImage.classList.remove('fade-in');
-                await new Promise(resolve => setTimeout(resolve, 700)); // Wait for fade out
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for fade out
             }
         }
     }
     
     // Final fade out of last image
     introImage.classList.remove('fade-in');
-    await new Promise(resolve => setTimeout(resolve, 700));
-    
-    // Add 1 second of black screen before start overlay
-    introScene.style.display = 'none';
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Show start overlay
+    // Show start overlay first, then hide intro scene to prevent flash
     const startOverlay = document.getElementById('start-overlay');
     if (startOverlay) {
         startOverlay.style.display = 'flex';
     }
+    
+    // Hide intro scene after start overlay is shown
+    introScene.style.display = 'none';
 }
 
 // Initialize everything when page loads

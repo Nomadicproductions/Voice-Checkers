@@ -64,6 +64,7 @@
     object-fit: contain;
     opacity: 0;
     transition: opacity 1s ease-in-out;
+    display: block; /* Ensure image displays */
 }
 
 .intro-image.fade-in {
@@ -82,7 +83,7 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    padding-bottom: 80px; /* Space from bottom */
+    padding-bottom: 40px; /* Reduced from 80px to raise button */
 }
 
 .start-background-image {
