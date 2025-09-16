@@ -456,24 +456,27 @@ class EnhancedCheckersTutorial {
                 const square = document.createElement('div');
                 square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
                 
-                // Add coordinate labels
-                if (row === 7) {
-                    const label = document.createElement('span');
-                    label.className = 'coordinate-label coord-bottom';
-                    label.textContent = String.fromCharCode(65 + col);
-                    label.style.bottom = '2px';
-                    label.style.left = '2px';
-                    label.style.position = 'absolute';
-                    square.appendChild(label);
-                }
-                if (col === 0) {
-                    const label = document.createElement('span');
-                    label.className = 'coordinate-label coord-left';
-                    label.textContent = 8 - row;
-                    label.style.top = '2px';
-                    label.style.left = '2px';
-                    label.style.position = 'absolute';
-                    square.appendChild(label);
+                // Add coordinate labels only on dark squares (used in checkers game)
+                // Dark squares are where (row + col) % 2 === 1
+                if ((row + col) % 2 === 1) {
+                    if (row === 7) {
+                        const label = document.createElement('span');
+                        label.className = 'coordinate-label coord-bottom';
+                        label.textContent = String.fromCharCode(65 + col);
+                        label.style.bottom = '2px';
+                        label.style.left = '2px';
+                        label.style.position = 'absolute';
+                        square.appendChild(label);
+                    }
+                    if (col === 0) {
+                        const label = document.createElement('span');
+                        label.className = 'coordinate-label coord-left';
+                        label.textContent = 8 - row;
+                        label.style.top = '2px';
+                        label.style.left = '2px';
+                        label.style.position = 'absolute';
+                        square.appendChild(label);
+                    }
                 }
                 
                 // Add piece if present
@@ -873,20 +876,23 @@ function renderBoard() {
             square.dataset.row = row;
             square.dataset.col = col;
             
-            // Add coordinate labels on every square, skipping "2"
-            const coordinateLabel = getCoordinateLabel(row, col);
-            if (coordinateLabel) {
-                const label = document.createElement('span');
-                // Use top-left positioning instead of center
-                label.className = `coordinate-label coord-top-left`;
-                
-                // Add rotation for player 2 in two-player mode
-                if (gameMode === 'two-player' && currentPlayer === 2) {
-                    label.classList.add('coordinate-label-player2');
+            // Add coordinate labels only on dark squares (used in checkers game), skipping "2"
+            // Dark squares are where (row + col) % 2 === 1
+            if ((row + col) % 2 === 1) {
+                const coordinateLabel = getCoordinateLabel(row, col);
+                if (coordinateLabel) {
+                    const label = document.createElement('span');
+                    // Use top-left positioning instead of center
+                    label.className = `coordinate-label coord-top-left`;
+                    
+                    // Add rotation for player 2 in two-player mode
+                    if (gameMode === 'two-player' && currentPlayer === 2) {
+                        label.classList.add('coordinate-label-player2');
+                    }
+                    
+                    label.textContent = coordinateLabel;
+                    square.appendChild(label);
                 }
-                
-                label.textContent = coordinateLabel;
-                square.appendChild(label);
             }
             
             const piece = board[row][col];
