@@ -703,6 +703,21 @@ let continuousCapture = false;
 let captureInProgress = false;
 let lastCapturePosition = null;
 
+// AI watchdog timer
+let aiWatchdogTimer = null;
+
+// Debug logging flag
+const DEBUG = true;
+
+// Helper functions for AI mode detection
+function isAIMode() { return gameMode === 'ai'; }
+function isAITurn() { return isAIMode() && currentPlayer === 2; }
+function isHumanTurn() { return isAIMode() && currentPlayer === 1; }
+
+function log(...args) { 
+    if (DEBUG) console.log('[AI DEBUG]', ...args); 
+}
+
 // Player piece counters and naming
 let player1PieceCounter = 1;
 let player2PieceCounter = 1;
@@ -926,6 +941,12 @@ function renderBoard() {
 function handleSquareClick(row, col) {
     if (!gameActive) return;
     
+    // Guard against clicking during AI turns
+    if (isAITurn()) {
+        log('Ignoring click during AI turn');
+        return;
+    }
+    
     const piece = board[row][col];
     
     if (selectedPiece) {
@@ -1092,8 +1113,82 @@ function highlightSquare(row, col, className) {
     }
 }
 
+// AI watchdog mechanism
+function scheduleAIWatchdog() {
+    if (aiWatchdogTimer) clearTimeout(aiWatchdogTimer);
+    aiWatchdogTimer = setTimeout(() => {
+        if (isAITurn() && gameActive) {
+            log('AI WATCHDOG: Retrying AI move...');
+            makeAIMoveSafely();
+        }
+    }, 2500);
+}
+
+function clearAIWatchdog() {
+    if (aiWatchdogTimer) {
+        clearTimeout(aiWatchdogTimer);
+        aiWatchdogTimer = null;
+    }
+}
+
+// AI capture continuation
+function queueAICaptureContinuation(row, col) {
+    log('Queueing AI capture continuation at', row, col);
+    setTimeout(() => continueAICaptureChain(row, col), 400);
+}
+
+function continueAICaptureChain(row, col) {
+    if (!isAITurn() || !gameActive) {
+        log('AI capture chain aborted - wrong turn or game inactive');
+        return;
+    }
+    
+    const captures = getValidMoves(row, col).filter(m => m.captured);
+    if (captures.length === 0) {
+        log('AI capture chain complete - no more captures available');
+        finalizeTurn();
+        return;
+    }
+    
+    log('AI continuing capture chain with', captures.length, 'options');
+    
+    // Strategy for multi-capture: pick best capture using existing evaluation
+    captures.sort((a, b) => {
+        const scoreA = evaluateMove(row, col, a.row, a.col, a.captured);
+        const scoreB = evaluateMove(row, col, b.row, b.col, b.captured);
+        return scoreB - scoreA;
+    });
+    
+    const nextMove = captures[0];
+    log('AI selects next capture:', {from: {row, col}, to: {row: nextMove.row, col: nextMove.col}});
+    
+    // Execute the next capture in the chain
+    makeMove(row, col, nextMove.row, nextMove.col, nextMove.captured);
+}
+
+// Finalize turn and handle AI scheduling
+function finalizeTurn() {
+    log('Finalizing turn - checking game end and AI scheduling');
+    
+    if (checkGameEnd()) { 
+        endGame(); 
+        return; 
+    }
+    
+    updateTurnDisplay();
+    
+    if (isAITurn()) {
+        log('Scheduling AI move and watchdog');
+        scheduleAIWatchdog();
+        setTimeout(() => makeAIMoveSafely(), 600);
+    } else {
+        clearAIWatchdog();
+    }
+}
 // Make a move
 function makeMove(fromRow, fromCol, toRow, toCol, captured) {
+    log('Making move:', {from: {fromRow, fromCol}, to: {toRow, toCol}, captured});
+    
     const piece = board[fromRow][fromCol];
     const oldLabel = piece.label;
     
@@ -1111,6 +1206,8 @@ function makeMove(fromRow, fromCol, toRow, toCol, captured) {
         board[captured.row][captured.col] = null;
         pieceNames.delete(`${captured.row}-${captured.col}`);
         
+        log('Piece captured:', capturedPiece);
+        
         // Play capture audio based on which player captured
         if (gameMode === 'two-player') {
             // In two-player mode, always use player 1's capture sound
@@ -1127,8 +1224,20 @@ function makeMove(fromRow, fromCol, toRow, toCol, captured) {
         // Check for additional captures
         const additionalCaptures = getValidMoves(toRow, toCol).filter(m => m.captured);
         if (additionalCaptures.length > 0) {
+            log('Additional captures available:', additionalCaptures.length);
             renderBoard();
-            selectPiece(toRow, toCol);
+            
+            if (isAITurn()) {
+                // AI continuation: queue automatic capture continuation
+                queueAICaptureContinuation(toRow, toCol);
+            } else {
+                // Human continuation: show selection and possible moves
+                selectedPiece = { row: toRow, col: toCol };
+                highlightSquare(toRow, toCol, 'highlighted');
+                additionalCaptures.forEach(move => {
+                    highlightSquare(move.row, move.col, 'possible-move');
+                });
+            }
             return;
         }
     } else {
@@ -1139,27 +1248,18 @@ function makeMove(fromRow, fromCol, toRow, toCol, captured) {
     // Check for king promotion
     if ((piece.player === 1 && toRow === 0) || (piece.player === 2 && toRow === 7)) {
         piece.isKing = true;
+        log('Piece promoted to king:', piece);
     }
     
     // Switch players
     currentPlayer = currentPlayer === 1 ? 2 : 1;
     clearSelection();
     renderBoard();
-    updateTurnDisplay();
     
-    // Check for game end
-    if (checkGameEnd()) {
-        endGame();
-        return;
-    }
+    log('Player switched to:', currentPlayer);
     
-    // AI move if needed
-    if (gameMode === 'ai' && currentPlayer === 2 && gameActive) {
-        console.log('Triggering AI move - gameMode:', gameMode, 'currentPlayer:', currentPlayer);
-        setTimeout(() => makeAIMove(), 1000);
-    } else {
-        console.log('AI not triggered - gameMode:', gameMode, 'currentPlayer:', currentPlayer, 'gameActive:', gameActive);
-    }
+    // Use finalizeTurn for proper AI scheduling
+    finalizeTurn();
 }
 
 // Check if game has ended
@@ -1238,10 +1338,18 @@ function endGame() {
 function updateTurnDisplay() {
     const displayTop = document.getElementById('turn-display-top');
     const displayBottom = document.getElementById('turn-display-bottom');
-    const turnText = `Player ${currentPlayer}'s turn`;
+    
+    let turnText;
+    if (isAIMode()) {
+        turnText = currentPlayer === 1 ? "Your turn" : "AI's turn";
+    } else {
+        turnText = `Player ${currentPlayer}'s turn`;
+    }
     
     if (displayTop) displayTop.textContent = turnText;
     if (displayBottom) displayBottom.textContent = turnText;
+    
+    log('Turn display updated:', turnText, 'gameMode:', gameMode, 'currentPlayer:', currentPlayer);
 }
 
 // Show error message
@@ -1264,18 +1372,30 @@ function showGameStatus(message) {
     }
 }
 
-// AI Move Logic
+// AI Move Logic - Safe wrapper
+function makeAIMoveSafely() {
+    log('makeAIMoveSafely called - gameMode:', gameMode, 'currentPlayer:', currentPlayer, 'gameActive:', gameActive);
+    if (!gameActive || !isAITurn()) {
+        log('AI move aborted - game not active or wrong player');
+        return;
+    }
+    
+    makeAIMove();
+}
+
 function makeAIMove() {
-    console.log('makeAIMove called - gameMode:', gameMode, 'currentPlayer:', currentPlayer, 'gameActive:', gameActive);
+    log('makeAIMove called - gameMode:', gameMode, 'currentPlayer:', currentPlayer, 'gameActive:', gameActive);
     if (!gameActive || currentPlayer !== 2) {
-        console.log('AI move aborted - game not active or wrong player');
+        log('AI move aborted - game not active or wrong player');
         return;
     }
     
     if (gameMode !== 'ai') {
-        console.log('AI move aborted - game mode is not AI:', gameMode);
+        log('AI move aborted - game mode is not AI:', gameMode);
         return;
     }
+    
+    clearAIWatchdog(); // Cancel watchdog since AI is now active
     
     const validMoves = [];
     
@@ -1296,7 +1416,12 @@ function makeAIMove() {
         }
     }
     
-    if (validMoves.length === 0) return;
+    if (validMoves.length === 0) {
+        log('AI has no valid moves');
+        return;
+    }
+    
+    log('AI found', validMoves.length, 'possible moves');
     
     // Sort moves by score
     validMoves.sort((a, b) => b.score - a.score);
@@ -1339,7 +1464,10 @@ function makeAIMove() {
     }
     
     if (selectedMove) {
-        selectPiece(selectedMove.from.row, selectedMove.from.col);
+        log('AI selected move:', selectedMove);
+        
+        // For AI moves, we don't use selectPiece - go directly to makeMove
+        // This avoids the human UI selection system entirely
         setTimeout(() => {
             makeMove(selectedMove.from.row, selectedMove.from.col, 
                     selectedMove.to.row, selectedMove.to.col, 
@@ -1416,6 +1544,13 @@ function setupVoiceRecognition() {
 
 // Process voice command
 function processVoiceCommand(command) {
+    // Guard against voice commands during AI turns
+    if (isAITurn()) {
+        showError('Wait for the AI to move.');
+        if (voiceFeedback) speak('Wait for the AI to move');
+        return;
+    }
+    
     const lastCommandElement = document.getElementById('last-command');
     if (lastCommandElement) {
         lastCommandElement.textContent = `Last command: ${command}`;
