@@ -1677,6 +1677,35 @@ function speak(text) {
 
 // Start voice recognition
 function startVoiceRecognition() {
+    // Check if user has already accepted the voice disclosure
+    if (localStorage.getItem('voiceDisclosureAccepted') !== 'yes') {
+        showVoiceDisclosureModal();
+        return;
+    }
+    
+    startVoiceRecognitionDirect();
+}
+
+// Show voice disclosure modal
+function showVoiceDisclosureModal() {
+    const modal = document.getElementById('voice-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // Set focus to the modal for accessibility
+        modal.querySelector('#voice-modal-title').focus();
+    }
+}
+
+// Hide voice disclosure modal
+function hideVoiceDisclosureModal() {
+    const modal = document.getElementById('voice-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Start voice recognition directly (after disclosure accepted)
+function startVoiceRecognitionDirect() {
     if (!recognition) {
         setupVoiceRecognition();
     }
@@ -1803,6 +1832,44 @@ function setupButtonHandlers() {
             const gameEndOverlay = document.getElementById('game-end-overlay');
             if (gameEndOverlay) gameEndOverlay.style.display = 'none';
             startGame();
+        });
+    }
+    
+    // Voice disclosure modal handlers
+    const voiceModal = document.getElementById('voice-modal');
+    const voiceEnableBtn = document.getElementById('voice-enable');
+    const voiceCancelBtn = document.getElementById('voice-cancel');
+    const modalBackdrop = voiceModal?.querySelector('.modal-backdrop');
+    
+    if (voiceEnableBtn) {
+        voiceEnableBtn.addEventListener('click', () => {
+            localStorage.setItem('voiceDisclosureAccepted', 'yes');
+            hideVoiceDisclosureModal();
+            startVoiceRecognitionDirect();
+        });
+    }
+    
+    if (voiceCancelBtn) {
+        voiceCancelBtn.addEventListener('click', hideVoiceDisclosureModal);
+    }
+    
+    // Close modal when clicking backdrop
+    if (modalBackdrop) {
+        modalBackdrop.addEventListener('click', hideVoiceDisclosureModal);
+    }
+    
+    // ESC key to close modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && voiceModal?.style.display === 'flex') {
+            hideVoiceDisclosureModal();
+        }
+    });
+    
+    // Legal menu button
+    const legalMenuBtn = document.getElementById('legal-menu-btn');
+    if (legalMenuBtn) {
+        legalMenuBtn.addEventListener('click', () => {
+            window.open('legal/legal.html', '_blank', 'noopener');
         });
     }
 }
