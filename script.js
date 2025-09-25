@@ -95,7 +95,7 @@ class EnhancedCheckersTutorial {
                             '📍 Selecting Destination',
                             'After selecting a piece, choose where to move it.',
                             'Tap the highlighted square',
-                            'Say "to C4" or complete command "L3 to C4"'
+                            'Say "to D4" or complete command "L3 to D4"'
                         );
                         
                         // Highlight possible moves
@@ -109,7 +109,7 @@ class EnhancedCheckersTutorial {
                         
                         // Show voice command
                         setTimeout(() => {
-                            this.demonstrateVoiceCommand('L3 to C4');
+                            this.demonstrateVoiceCommand('L3 to D4');
                         }, 5000 / this.playbackSpeed);
                     }
                 }
@@ -135,8 +135,8 @@ class EnhancedCheckersTutorial {
                         this.showExplanation(
                             '♟️ Diagonal Movement',
                             'Pieces move diagonally forward on dark squares only. Regular pieces cannot move backward.',
-                            'Touch piece L1, then touch square B2',
-                            'Say "L1 to B2" or "Move L1 to B2"'
+                            'Touch piece L1, then touch square B4',
+                            'Say "L1 to B4" or "Move L1 to B4"'
                         );
                         
                         // Highlight the piece
@@ -152,7 +152,7 @@ class EnhancedCheckersTutorial {
                         setTimeout(() => {
                             this.highlightSquare(4, 1, 'possible-move');
                             this.demonstrateTouchMove(5, 0, 4, 1);
-                            this.demonstrateVoiceCommand('to B2');
+                            this.demonstrateVoiceCommand('to B4');
                         }, 3500 / this.playbackSpeed);
                         
                         // Execute move
@@ -181,7 +181,7 @@ class EnhancedCheckersTutorial {
                     demonstration: () => {
                         this.showExplanation(
                             '⚔️ Capturing Opponent Pieces',
-                            'Jump over an opponent\'s piece to capture it. The captured piece is removed from the board.',
+                            'Jump over an opponent\'s piece to capture it. The captured piece is removed from the board. If a capture is available, it is mandatory - you must capture.',
                             'Touch L3, then touch the square beyond C4',
                             'Say "L3 to E5" or "Capture C4"'
                         );
@@ -227,14 +227,14 @@ class EnhancedCheckersTutorial {
                             '🔥 Chain Captures',
                             'If you can capture multiple pieces in sequence, you must do so. Keep jumping until no more captures are available.',
                             'Touch L1, then each landing square in sequence',
-                            'Say "L1 to C3 to E5" or make each move separately'
+                            'Say "L1 to C5 then say L1 to E7"'
                         );
                         
                         // First capture
                         setTimeout(() => {
                             this.highlightPiece(5, 0);
                             this.demonstrateTouchSelect(5, 0);
-                            this.demonstrateVoiceCommand('L1 to C3');
+                            this.demonstrateVoiceCommand('L1 to C5');
                         }, 2000 / this.playbackSpeed);
                         
                         setTimeout(() => {
@@ -243,7 +243,7 @@ class EnhancedCheckersTutorial {
                         
                         // Second capture
                         setTimeout(() => {
-                            this.demonstrateVoiceCommand('to E5');
+                            this.demonstrateVoiceCommand('L1 to E7');
                             this.executeCapture(3, 2, 1, 4, 2, 3);
                         }, 6000 / this.playbackSpeed);
                     }
@@ -269,13 +269,13 @@ class EnhancedCheckersTutorial {
                             '👑 King Promotion',
                             'When a piece reaches the opposite end of the board, it becomes a King and can move backward!',
                             'Touch C2, then touch the end row square',
-                            'Say "C2 to D1" to reach the king row'
+                            'Say "C2 to D8" to reach the king row'
                         );
                         
                         setTimeout(() => {
                             this.highlightPiece(1, 2);
                             this.demonstrateTouchSelect(1, 2);
-                            this.demonstrateVoiceCommand('C2 to D1');
+                            this.demonstrateVoiceCommand('C2 to D8');
                         }, 2000 / this.playbackSpeed);
                         
                         setTimeout(() => {
@@ -456,22 +456,16 @@ class EnhancedCheckersTutorial {
                 const square = document.createElement('div');
                 square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
                 
-                // Add coordinate labels only on dark squares (used in checkers game)
+                // Add coordinate labels only on dark squares (used in checkers game), skipping "2"
                 // Dark squares are where (row + col) % 2 === 1
+                // Use the same coordinate system as the main game
                 if ((row + col) % 2 === 1) {
-                    if (row === 7) {
+                    // Use getCoordinateLabel function to ensure consistency with main game
+                    const coordinateLabel = getCoordinateLabel(row, col);
+                    if (coordinateLabel) {
                         const label = document.createElement('span');
-                        label.className = 'coordinate-label coord-bottom';
-                        label.textContent = String.fromCharCode(65 + col);
-                        label.style.bottom = '2px';
-                        label.style.left = '2px';
-                        label.style.position = 'absolute';
-                        square.appendChild(label);
-                    }
-                    if (col === 0) {
-                        const label = document.createElement('span');
-                        label.className = 'coordinate-label coord-left';
-                        label.textContent = 8 - row;
+                        label.className = 'coordinate-label coord-top-left';
+                        label.textContent = coordinateLabel;
                         label.style.top = '2px';
                         label.style.left = '2px';
                         label.style.position = 'absolute';
