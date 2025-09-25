@@ -230,22 +230,44 @@ class EnhancedCheckersTutorial {
                             'Say "L1 to C5 then say L1 to E7"'
                         );
                         
-                        // First capture
+                        // Highlight capture sequence pieces
+                        this.highlightPiece(5, 0); // L1 piece
+                        this.highlightPiece(4, 1, 'enemy'); // B2 enemy piece
+                        this.highlightPiece(2, 3, 'enemy'); // D4 enemy piece
+                        
+                        // First capture - select piece and show move
                         setTimeout(() => {
-                            this.highlightPiece(5, 0);
+                            this.highlightSquare(3, 2, 'possible-move'); // Landing square C5
                             this.demonstrateTouchSelect(5, 0);
                             this.demonstrateVoiceCommand('L1 to C5');
                         }, 2000 / this.playbackSpeed);
                         
+                        // Show hand move to first capture destination
+                        setTimeout(() => {
+                            this.demonstrateTouchMove(5, 0, 3, 2);
+                        }, 3500 / this.playbackSpeed);
+                        
+                        // Execute first capture
                         setTimeout(() => {
                             this.executeCapture(5, 0, 3, 2, 4, 1);
-                        }, 4000 / this.playbackSpeed);
+                        }, 5500 / this.playbackSpeed);
                         
-                        // Second capture
+                        // Second capture - show destination and move
                         setTimeout(() => {
+                            this.highlightSquare(1, 4, 'possible-move'); // Landing square E7
+                            this.demonstrateTouchSelect(3, 2); // Select piece at new position
                             this.demonstrateVoiceCommand('L1 to E7');
+                        }, 7000 / this.playbackSpeed);
+                        
+                        // Show hand move to second capture destination
+                        setTimeout(() => {
+                            this.demonstrateTouchMove(3, 2, 1, 4);
+                        }, 8500 / this.playbackSpeed);
+                        
+                        // Execute second capture
+                        setTimeout(() => {
                             this.executeCapture(3, 2, 1, 4, 2, 3);
-                        }, 6000 / this.playbackSpeed);
+                        }, 10500 / this.playbackSpeed);
                     }
                 }
             ]
@@ -272,19 +294,29 @@ class EnhancedCheckersTutorial {
                             'Say "C2 to D8" to reach the king row'
                         );
                         
+                        // Highlight the piece that will become king
+                        this.highlightPiece(1, 2);
+                        
+                        // Show piece selection and destination
                         setTimeout(() => {
-                            this.highlightPiece(1, 2);
+                            this.highlightSquare(0, 3, 'possible-move'); // Landing square D8
                             this.demonstrateTouchSelect(1, 2);
                             this.demonstrateVoiceCommand('C2 to D8');
                         }, 2000 / this.playbackSpeed);
                         
+                        // Show complete move animation from C2 to D8
+                        setTimeout(() => {
+                            this.demonstrateTouchMove(1, 2, 0, 3);
+                        }, 4000 / this.playbackSpeed);
+                        
+                        // Execute move and promote to king
                         setTimeout(() => {
                             this.executeMove(1, 2, 0, 3);
-                            // Add king crown
+                            // Add king crown after move
                             setTimeout(() => {
                                 this.makeKing(0, 3);
                             }, 500 / this.playbackSpeed);
-                        }, 4000 / this.playbackSpeed);
+                        }, 6000 / this.playbackSpeed);
                     }
                 }
             ]
