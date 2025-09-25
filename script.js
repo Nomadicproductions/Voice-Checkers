@@ -497,6 +497,12 @@ class EnhancedCheckersTutorial {
                     if (coordinateLabel) {
                         const label = document.createElement('span');
                         label.className = 'coordinate-label coord-top-left';
+                        
+                        // Add special class for bottom 2 rows in tutorial to ensure they stay under explanation box
+                        if (row >= 6) {
+                            label.classList.add('tutorial-bottom-row-coord');
+                        }
+                        
                         label.textContent = coordinateLabel;
                         label.style.top = '2px';
                         label.style.left = '2px';
