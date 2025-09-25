@@ -454,6 +454,7 @@
     max-width: 90%;
     width: 450px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 10;
     animation: slideUp 0.3s ease;
     max-height: 40vh;
     overflow-y: auto;
@@ -798,6 +799,11 @@ body {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 0, 0, 0.7);
     z-index: 1;
     letter-spacing: 0.5px;
+}
+
+/* Lower z-index for tutorial bottom row coordinates to stay under explanation box */
+.tutorial-bottom-row-coord {
+    z-index: 0;
 }
 
 .coordinate-label-player2 {
