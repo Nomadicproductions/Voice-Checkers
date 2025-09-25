@@ -175,6 +175,7 @@
                     </label>
                     <button id="reset-game-btn" class="reset-game-btn">Reset Game</button>
                     <button id="tutorial-menu-btn" class="tutorial-menu-btn">Watch Tutorial</button>
+                    <button id="legal-menu-btn" class="legal-menu-btn">Privacy & Legal</button>
                 </div>
             </div>
         </div>
@@ -187,6 +188,41 @@
         <div class="bottom-logo">
             <img src="assets/file_000000007b2862468a3b715616fbfddd.png" alt="Logo" class="game-logo">
         </div>
+    </div>
+    
+    <!-- Voice Recognition Disclosure Modal -->
+    <div id="voice-modal" class="modal voice-modal" style="display: none;" role="dialog" aria-labelledby="voice-modal-title" aria-modal="true">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="voice-modal-title">🎤 Voice Commands</h2>
+            </div>
+            <div class="modal-body">
+                <div class="voice-disclosure">
+                    <p><strong>Voice recognition uses your device's speech service.</strong></p>
+                    <p>When you use voice commands:</p>
+                    <ul>
+                        <li>Your microphone will capture audio when you speak commands</li>
+                        <li>Audio may be sent to Apple, Google, or Microsoft for transcription</li>
+                        <li>We do not store, record, or access any voice data</li>
+                        <li>Voice commands are completely optional</li>
+                    </ul>
+                    <div class="voice-warning">
+                        <strong>⚠️ Privacy Notice:</strong> Avoid speaking sensitive information during voice commands.
+                    </div>
+                    <p>Learn more about our privacy practices: <a href="legal/legal.html#voice" target="_blank" rel="noopener">Voice Recognition Details</a></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="voice-enable" class="modal-btn primary">Enable Voice Commands</button>
+                <button id="voice-cancel" class="modal-btn secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Privacy Footer Link -->
+    <div class="privacy-footer">
+        <a href="legal/legal.html" target="_blank" rel="noopener" class="privacy-link">Privacy & Legal</a>
     </div>
 
     <script src="script.js"></script>

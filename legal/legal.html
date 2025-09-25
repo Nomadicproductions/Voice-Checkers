@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy & Legal - Crown's Command</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="legal.css">
+</head>
+<body>
+    <div class="legal-container">
+        <header class="legal-header">
+            <h1>Privacy & Legal</h1>
+            <p id="legal-updated">Last Updated: <span data-bind="legal-date">2025-01-16</span> • Commit: <span data-bind="legal-commit">loading...</span></p>
+            <nav class="legal-nav">
+                <a href="#summary">Summary</a>
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#voice">Voice Recognition</a>
+                <a href="#gdpr">GDPR Addendum</a>
+                <a href="#ccpa">CCPA/CPRA Notice</a>
+                <a href="#terms">Terms of Use</a>
+                <a href="#contact">Contact</a>
+            </nav>
+            <div class="back-to-game">
+                <button onclick="window.close(); window.location.href='../index.html';" class="back-btn">← Back to Game</button>
+            </div>
+        </header>
+
+        <main class="legal-main">
+            <section id="summary">
+                <h2>Quick Summary</h2>
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <h3>🔒 Privacy First</h3>
+                        <p>No personal data collection, no tracking, no accounts required.</p>
+                    </div>
+                    <div class="summary-card">
+                        <h3>🎤 Voice Processing</h3>
+                        <p>Voice commands processed locally by your browser's speech service.</p>
+                    </div>
+                    <div class="summary-card">
+                        <h3>🌐 Internet Required</h3>
+                        <p>Voice recognition requires internet connection for browser speech services.</p>
+                    </div>
+                    <div class="summary-card">
+                        <h3>📋 Compliance</h3>
+                        <p>GDPR, CCPA/CPRA compliant through privacy-by-design architecture.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="privacy">
+                <h2>Privacy Policy</h2>
+                <div id="privacy-body" class="legal-content">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </section>
+
+            <section id="voice">
+                <h2>Voice Recognition Details</h2>
+                <div class="voice-details">
+                    <h3>How Voice Commands Work</h3>
+                    <p>Voice commands are processed using your browser's built-in Web Speech API. This means:</p>
+                    <ul>
+                        <li><strong>Local Processing:</strong> Initial processing happens in your browser</li>
+                        <li><strong>Cloud Services:</strong> Your browser may send audio to Apple/Google/Microsoft for transcription</li>
+                        <li><strong>No Storage:</strong> We do not store, record, or access any voice data</li>
+                        <li><strong>Optional Feature:</strong> Voice commands are entirely optional - you can play with touch/mouse only</li>
+                    </ul>
+                    
+                    <h3>Voice Data Flow</h3>
+                    <div class="data-flow">
+                        <div class="flow-step">
+                            <div class="step-number">1</div>
+                            <p>You speak a command</p>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">
+                            <div class="step-number">2</div>
+                            <p>Browser captures audio</p>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">
+                            <div class="step-number">3</div>
+                            <p>Browser sends to speech service</p>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">
+                            <div class="step-number">4</div>
+                            <p>Text returned to game</p>
+                        </div>
+                    </div>
+
+                    <div class="voice-warning">
+                        <strong>⚠️ Important:</strong> Avoid speaking sensitive information during voice commands, as audio may be processed by third-party speech services.
+                    </div>
+                </div>
+            </section>
+
+            <section id="gdpr">
+                <h2>EU/UK GDPR Addendum</h2>
+                <details class="legal-details">
+                    <summary>View GDPR Addendum</summary>
+                    <div id="gdpr-body" class="legal-content">
+                        <!-- Content will be loaded dynamically -->
+                    </div>
+                </details>
+            </section>
+
+            <section id="ccpa">
+                <h2>US CCPA/CPRA Supplemental Notice</h2>
+                <details class="legal-details">
+                    <summary>View CCPA/CPRA Notice</summary>
+                    <div id="ccpa-body" class="legal-content">
+                        <!-- Content will be loaded dynamically -->
+                    </div>
+                </details>
+            </section>
+
+            <section id="terms">
+                <h2>Terms of Use</h2>
+                <div id="terms-body" class="legal-content">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </section>
+
+            <section id="contact">
+                <h2>Contact Information</h2>
+                <div class="contact-info">
+                    <p><strong>For questions about privacy, data handling, or these policies:</strong></p>
+                    <ul>
+                        <li>Repository: <a href="https://github.com/Nomadicproductions/Voice-Checkers" target="_blank" rel="noopener">GitHub Repository</a></li>
+                        <li>Issues: <a href="https://github.com/Nomadicproductions/Voice-Checkers/issues" target="_blank" rel="noopener">Report Issues</a></li>
+                    </ul>
+                    
+                    <div class="canonical-link">
+                        <p><strong>Canonical Privacy Policy URL:</strong></p>
+                        <a href="#" id="canonical-privacy-url" target="_blank" rel="noopener">Loading...</a>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="legal-footer">
+            <p>&copy; <span id="year"></span> Nomadic Productions. All rights reserved.</p>
+            <p>This app processes no personal data and is designed with privacy by default.</p>
+        </footer>
+    </div>
+
+    <script src="legal.js" type="module"></script>
+</body>
+</html>
