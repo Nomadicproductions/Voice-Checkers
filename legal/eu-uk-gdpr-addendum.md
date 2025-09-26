@@ -1,6 +1,6 @@
 # EU/UK GDPR Addendum
 
-**Effective Date:** [Date]  
+**Effective Date:** 26 September 2025  
 **Scope:** European Union and United Kingdom Users  
 **Regulation:** General Data Protection Regulation (GDPR)
 

@@ -1,7 +1,16 @@
-# Privacy Policy
+# Privacy Policy (Canonical Reference Notice)
 
-**Effective Date:** [Date]  
-**Last Updated:** [Date]
+The canonical, up-to-date Privacy Policy is now published at:
+https://nomadicproductions.github.io/Kings-Command-/privacy/
+
+This markdown file is retained for historical/reference purposes and may not reflect the latest updates after 26 September 2025.
+
+---
+
+## Historical Version (Pre-Migration)
+
+**Effective Date:** 26 September 2025  
+**Last Updated:** 26 September 2025
 
 ## Overview
 

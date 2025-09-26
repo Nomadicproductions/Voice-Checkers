@@ -4,7 +4,7 @@
 **Developer:** Nomadicproductions  
 **Category:** Games/Board Games  
 **Price:** Free  
-**Last Updated:** [Date]
+**Last Updated:** 26 September 2025
 
 ## App Description for Store Listing
 
