@@ -37,14 +37,43 @@ function bindMetadata() {
 
 async function loadLegalContent() {
     const contentSections = [
-        { id: 'privacy-body', file: '../privacy-policy.md' },
         { id: 'terms-body', file: '../terms-and-conditions.md' },
         { id: 'gdpr-body', file: '../eu-uk-gdpr-addendum.md' },
         { id: 'ccpa-body', file: '../us-ccpa-cpra-supplemental.md' }
     ];
     
+    // Handle privacy section specially - show canonical notice
+    loadPrivacyNotice();
+    
     for (const section of contentSections) {
         await loadSection(section.id, section.file);
+    }
+}
+
+function loadPrivacyNotice() {
+    const privacyElement = document.getElementById('privacy-body');
+    if (privacyElement) {
+        privacyElement.innerHTML = `
+            <div style="background: #f8f9fa; border: 2px solid #007bff; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+                <h3 style="color: #007bff; margin-top: 0;">🔗 Canonical Privacy Policy</h3>
+                <p><strong>The official Privacy Policy has moved to its own dedicated page:</strong></p>
+                <p><a href="${CANONICAL_PRIVACY_URL}" target="_blank" rel="noopener" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                    View Privacy Policy →
+                </a></p>
+                <p style="font-size: 0.9em; color: #6c757d; margin-bottom: 0;">
+                    <strong>URL:</strong> <code>${CANONICAL_PRIVACY_URL}</code>
+                </p>
+            </div>
+            <details style="margin-top: 20px;">
+                <summary style="cursor: pointer; font-weight: bold; color: #6c757d;">View Historical Privacy Policy (Pre-Migration)</summary>
+                <div id="privacy-historical" style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                    <em>Loading historical version...</em>
+                </div>
+            </details>
+        `;
+        
+        // Load historical version in the details section
+        loadSection('privacy-historical', './privacy-policy.md');
     }
 }
 
