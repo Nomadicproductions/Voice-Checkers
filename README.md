@@ -95,6 +95,17 @@ Bug reports and feature requests can be submitted via [Issues](https://github.co
 
 ---
 
+## 📄 Legal
+
+- [Privacy Policy](https://nomadicproductions.github.io/Kings-Command-/privacy/)
+- [Terms & Conditions](legal/terms-and-conditions.md)
+- [EU/UK GDPR Addendum](legal/eu-uk-gdpr-addendum.md)
+- [US CCPA/CPRA Supplemental](legal/us-ccpa-cpra-supplemental.md)
+- [App Store Legal Summary](app-store-legal-summary.md)
+- [Legal Hub](legal/legal.html)
+
+---
+
 ## 📄 License
 
 No license specified. Unless otherwise stated, see repository for usage terms.

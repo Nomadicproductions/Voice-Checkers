@@ -1,6 +1,6 @@
 # Terms and Conditions
 
-**Effective Date:** [Date]
+**Effective Date:** 26 September 2025
 
 ## 1. Acceptance of Terms
 
@@ -70,7 +70,7 @@ For questions about these Terms, please contact:
 
 ## 12. Governing Law
 
-These Terms are governed by the laws of [Your Jurisdiction], without regard to conflict of law principles.
+These Terms are governed by the laws of Australia (NSW), without regard to conflict of law principles.
 
 ---
 

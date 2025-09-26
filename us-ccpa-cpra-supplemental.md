@@ -1,6 +1,6 @@
 # US CCPA/CPRA Supplemental Privacy Notice
 
-**Effective Date:** [Date]  
+**Effective Date:** 26 September 2025  
 **Scope:** California Residents  
 **Regulation:** California Consumer Privacy Act (CCPA) and California Privacy Rights Act (CPRA)
 
